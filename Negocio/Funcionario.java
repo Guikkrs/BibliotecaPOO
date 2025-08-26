@@ -9,7 +9,7 @@ public class Funcionario extends Pessoa {
     private Permissao permissao;
 
     public Funcionario(String nome, String cpf, String telefone, int idade, String login, String senhaHash, Permissao permissao) {
-        super(nome, cpf, telefone, idade); // Corrected super() call
+        super(nome, cpf, telefone, idade);
         this.login = login;
         this.senhaHash = senhaHash;
         this.permissao = permissao;

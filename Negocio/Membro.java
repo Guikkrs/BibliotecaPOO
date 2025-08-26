@@ -6,7 +6,7 @@ public class Membro extends Pessoa {
 
     private int emprestimosAtivos;
     private String historicoEmprestimos;
-    private String login; // Membro is also a user
+    private String login;
     private String senhaHash;
     private Permissao permissao;
 
@@ -15,11 +15,10 @@ public class Membro extends Pessoa {
         this.login = login;
         this.senhaHash = senhaHash;
         this.permissao = permissao;
-        this.emprestimosAtivos = 0; // Initialize with a default value
-        this.historicoEmprestimos = ""; // Initialize with a default value
+        this.emprestimosAtivos = 0;
+        this.historicoEmprestimos = "";
     }
 
-    // Getters for Membro-specific attributes
     public int getEmprestimosAtivos() {
         return this.emprestimosAtivos;
     }
@@ -40,7 +39,6 @@ public class Membro extends Pessoa {
         return this.permissao;
     }
 
-    // Simple implementation of the methods
     public void consultarEmprestimos() {
         System.out.println("Consultando empréstimos ativos para " + getNome());
         // Logic to fetch and display active loans
