@@ -45,7 +45,7 @@ public class Pessoa {
     }
 
     public void setTelefone(String telefone) {
-        if (telefone != null && telefone.trim().isEmpty()) {
+        if (telefone != null && !telefone.trim().isEmpty()) {
             this.telefone = telefone;
         } else {
             throw new IllegalArgumentException("Numero telefonico nao pode estar vazio");
