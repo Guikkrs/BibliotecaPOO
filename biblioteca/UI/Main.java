@@ -1,4 +1,4 @@
-package biblioteca;
+package biblioteca.UI;
 
 import biblioteca.Enum.EnumSetor;
 import biblioteca.Negocio.Autor;

@@ -40,23 +40,3 @@ public class Membro extends Pessoa {
         return this.permissao;
     }
 
-    public void consultarEmprestimos() {
-        System.out.println("Consultando empréstimos ativos para " + getNome());
-        // Logic to fetch and display active loans
-    }
-
-    public void consultarHistorico() {
-        System.out.println("Consultando histórico de empréstimos para " + getNome());
-        // Logic to fetch and display loan history
-    }
-
-    public void debitosPendentes() {
-        System.out.println("Verificando débitos pendentes para " + getNome());
-        // Logic to check for pending debts
-    }
-
-    public void calcularMultas() {
-        System.out.println("Calculando multas para " + getNome());
-        // Logic to calculate fines
-    }
-}

@@ -2,15 +2,14 @@ package biblioteca.Negocio;
 
 import java.sql.Date;
 
-import biblioteca.Negocio.*;;
-
 public class Emprestimo {
+
     private Membro membro;
-    private ItemdoAcervo item;
+    private ItemDoAcervo item;
     private Date dataEmprestimo;
     private Date dataDevolucao;
 
-    public Emprestimo(Membro membro, ItemdoAcervo item, Date dataEmprestimo, Date dataDevolucao) {
+    public Emprestimo(Membro membro, ItemDoAcervo item, Date dataEmprestimo, Date dataDevolucao) {
         this.membro = membro;
         this.item = item;
         this.dataEmprestimo = dataEmprestimo;
@@ -19,5 +18,4 @@ public class Emprestimo {
         this.dataDevolucao = dataDevolucao;
     }
 
-    
 }
