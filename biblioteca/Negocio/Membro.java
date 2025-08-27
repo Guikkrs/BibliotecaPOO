@@ -1,6 +1,7 @@
-package Negocio;
+package biblioteca.Negocio;
 
 import Enum.Permissao;
+import biblioteca.Negocio.Pessoa;
 
 public class Membro extends Pessoa {
 

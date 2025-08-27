@@ -1,6 +1,8 @@
-package Negocio;
+package biblioteca.Negocio;
 
 import java.sql.Date;
+
+import biblioteca.Negocio.*;;
 
 public class Emprestimo {
     private Membro membro;
@@ -17,5 +19,5 @@ public class Emprestimo {
         this.dataDevolucao = dataDevolucao;
     }
 
-    // Getters e Setters
+    
 }
