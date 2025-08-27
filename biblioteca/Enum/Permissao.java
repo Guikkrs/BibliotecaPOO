@@ -1,4 +1,4 @@
-package Enum;
+package biblioteca.Enum;
 
 public enum Permissao {
     ADMINISTRADOR,

@@ -1,6 +1,6 @@
 package biblioteca.Negocio;
 
-import Enum.Permissao;
+import biblioteca.Enum.Permissao;
 
 public class Funcionario extends Pessoa {
 
