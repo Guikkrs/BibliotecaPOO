@@ -2,13 +2,13 @@ package biblioteca.Negocio;
 
 import biblioteca.Enum.Permissao;
 
-public class Membro extends Pessoa {
+public class Funcionario extends Pessoa implements java.io.Serializable {
 
     private String login;
     private String senhaHash;
     private Permissao permissao;
 
-    public Membro(String nome, String cpf, String telefone, int idade, String login, String senhaHash, Permissao permissao) {
+    public Funcionario(String nome, String cpf, String telefone, int idade, String login, String senhaHash, Permissao permissao) {
         super(nome, cpf, telefone, idade);
         this.login = login;
         this.senhaHash = senhaHash;
@@ -19,16 +19,23 @@ public class Membro extends Pessoa {
         return this.login;
     }
 
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
     public String getSenhaHash() {
         return this.senhaHash;
+    }
+
+    public void setSenhaHash(String senhaHash) {
+        this.senhaHash = senhaHash;
     }
 
     public Permissao getPermissao() {
         return this.permissao;
     }
 
-    @Override
-    public String toString() {
-        return "Membro [Nome: " + getNome() + ", CPF: " + getCpf() + ", Login: " + this.login + "]";
+    public void setPermissao(Permissao permissao) {
+        this.permissao = permissao;
     }
 }

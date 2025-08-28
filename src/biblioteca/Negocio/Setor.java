@@ -1,6 +1,6 @@
 package biblioteca.Negocio;
 
-public class Setor {
+public class Setor implements java.io.Serializable {
     private String nome;
 
     public Setor(String nome) {

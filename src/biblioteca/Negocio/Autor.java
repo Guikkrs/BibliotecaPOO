@@ -1,6 +1,6 @@
 package biblioteca.Negocio;
 
-public class Autor {
+public class Autor implements java.io.Serializable {
 
     
     private String nome;

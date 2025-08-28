@@ -3,7 +3,7 @@ package biblioteca.Negocio;
 import biblioteca.Enum.StatusMulta;
 import java.math.BigDecimal;
 
-public class Multa {
+public class Multa implements java.io.Serializable {
 
     private Membro membro;
     private Emprestimo emprestimo;

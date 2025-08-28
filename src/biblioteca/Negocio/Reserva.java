@@ -5,7 +5,7 @@ import biblioteca.Enum.StatusEmprestimo;
 import java.time.LocalDate;
 import java.util.Objects;
 
-public class Reserva {
+public class Reserva implements java.io.Serializable {
 
     private Membro membro;
     private ItemDoAcervo itemdoarcevo;

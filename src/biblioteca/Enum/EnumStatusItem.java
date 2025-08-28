@@ -1,6 +1,6 @@
 package biblioteca.Enum;
 
-public enum EnumStatusItem {
+public enum EnumStatusItem implements java.io.Serializable  {
     DISPONIVEL,
     EMPRESTADO,
     RESERVADO

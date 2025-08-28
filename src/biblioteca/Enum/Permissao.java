@@ -1,6 +1,6 @@
 package biblioteca.Enum;
 
-public enum Permissao {
+public enum Permissao implements java.io.Serializable {
     ADMINISTRADOR,
     GERENTE,
     USUARIO_COMUM,

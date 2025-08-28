@@ -3,7 +3,7 @@ package biblioteca.Negocio;
 import biblioteca.Enum.EnumSetor;
 import biblioteca.Enum.EnumStatusItem;
 
-public abstract class ItemDoAcervo {
+public abstract class ItemDoAcervo implements java.io.Serializable {
 
     private String titulo;
     private Autor autor;

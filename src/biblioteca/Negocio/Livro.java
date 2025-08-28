@@ -2,7 +2,7 @@ package biblioteca.Negocio;
 
 import biblioteca.Enum.EnumSetor;
 
-public class Livro extends ItemDoAcervo {
+public class Livro extends ItemDoAcervo implements java.io.Serializable {
     
     private int numeroDePaginas;
     private String isbn;

@@ -2,7 +2,7 @@ package biblioteca.Negocio;
 
 import java.util.Objects;
 
-public class Pessoa {
+public class Pessoa implements java.io.Serializable {
 
     private String nome;
     private String cpf;

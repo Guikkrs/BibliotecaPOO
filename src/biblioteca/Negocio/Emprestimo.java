@@ -3,7 +3,7 @@ package biblioteca.Negocio;
 import biblioteca.Enum.StatusEmprestimo;
 import java.time.LocalDate;
 
-public class Emprestimo {
+public class Emprestimo implements java.io.Serializable {
     
     private Membro membro;
     private ItemDoAcervo itemDoAcervo;

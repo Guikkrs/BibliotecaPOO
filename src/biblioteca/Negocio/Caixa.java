@@ -4,7 +4,7 @@ import biblioteca.Enum.StatusCaixa;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public class Caixa {
+public class Caixa implements java.io.Serializable {
 
     private LocalDate dataAbertura;
     private LocalDate dataFechamento;
