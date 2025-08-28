@@ -36,4 +36,10 @@ public class Multa {
     public void setStatus(StatusMulta status) {
         this.status = status;
     }
+
+    public void registrarPagamento() {
+        if (this.status == StatusMulta.PENDENTE) {
+            this.status = StatusMulta.PAGA;
+        }
+    }
 }

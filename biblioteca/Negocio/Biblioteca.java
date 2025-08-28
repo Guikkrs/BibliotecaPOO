@@ -11,11 +11,9 @@ import java.util.Map;
 import biblioteca.Enum.EnumStatusItem;
 import biblioteca.Enum.StatusCaixa;
 import biblioteca.Enum.StatusEmprestimo;
-import biblioteca.Enum.StatusLivro;
 import biblioteca.Enum.StatusMulta;
 import biblioteca.Enum.StatusReserva;
 import biblioteca.Enum.EnumStatusItem;
-import biblioteca.Enum.StatusMulta;
 
 public class Biblioteca {
 

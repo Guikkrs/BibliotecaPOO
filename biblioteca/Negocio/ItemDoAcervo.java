@@ -2,7 +2,6 @@ package biblioteca.Negocio;
 
 import biblioteca.Enum.EnumSetor;
 import biblioteca.Enum.EnumStatusItem;
-import biblioteca.Enum.StatusLivro;
 
 public abstract class ItemDoAcervo {
 

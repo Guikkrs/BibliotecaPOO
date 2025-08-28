@@ -51,4 +51,18 @@ public class Emprestimo {
     public void setDevolucaoRealizada(LocalDate devolucaoRealizada) {
         this.devolucaoRealizada = devolucaoRealizada;
     }
+
+    public boolean estaAtrasado() {
+        if (this.devolucaoRealizada != null) {
+            return this.devolucaoRealizada.isAfter(
+                this.dataDevolucaoPrevista
+            );
+        }
+        return LocalDate.now().isAfter(this.dataDevolucaoPrevista);
+    }
+
+    public void finalizarEmprestimo(LocalDate dataDevolucao) {
+        setDevolucaoRealizada(dataDevolucao);
+        setStatus(StatusEmprestimo.DEVOLVIDO);
+    }
 }

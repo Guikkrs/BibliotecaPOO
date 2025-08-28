@@ -11,7 +11,7 @@ import biblioteca.Negocio.Livro;
 import biblioteca.Negocio.Membro;
 import biblioteca.Enum.Permissao;
 import biblioteca.Enum.StatusEmprestimo;
-import biblioteca.Enum.StatusLivro;
+import biblioteca.Enum.EnumStatusItem;
 import biblioteca.Enum.StatusMulta;
 import biblioteca.Negocio.Multa;
 
@@ -23,7 +23,7 @@ public class Main {
 
         Membro novoMembro = new Membro("Ana Souza", "111.222.333-44", "99999-8888", 28, "aninha", "senhaSegura", Permissao.MEMBRO);
         
-        Autor autorLivro = new Autor("Machado de Assis");
+        Autor autorLivro = new Autor("Machado de Assis", "Brasileiro");
         Livro novoLivro = new Livro("Dom Casmurro", autorLivro, 1899, null, 256, "978-85-8041-000-0");
 
         minhaBiblioteca.adicionarMembro(novoMembro);

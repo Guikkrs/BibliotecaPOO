@@ -7,12 +7,11 @@ public class Autor {
     private String nacionalidade;
 
 
-    public Autor(String nome) {
+    public Autor(String nome, String nacionalidade) {
         this.nome = nome;
         this.nacionalidade = nacionalidade;
     }
 
-    
 
     public String getNome() {
         return this.nome;

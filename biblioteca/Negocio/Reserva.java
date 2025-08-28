@@ -3,21 +3,20 @@ package biblioteca.Negocio;
 import biblioteca.Enum.StatusEmprestimo;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.Objects;
 
 public class Reserva {
 
     private Membro membro;
     private ItemDoAcervo itemdoarcevo;
-    private Date dataReserva;
+    private LocalDate dataReserva;
     private StatusEmprestimo status;
 
     public Reserva(Membro membro, ItemDoAcervo itemdoarcevo, LocalDate dataReserva) {
         this.membro = membro;
         this.itemdoarcevo = itemdoarcevo;
         this.dataReserva = dataReserva;
-        this.status = StatusEmprestimo.ATIVA;
+        this.status = StatusEmprestimo.ATIVO;
     }
 
     public Membro getMembro() {
@@ -36,11 +35,11 @@ public class Reserva {
         this.itemdoarcevo = itemdoarcevo;
     }
 
-    public Date getDataReserva() {
+    public LocalDate getDataReserva() {
         return dataReserva;
     }
 
-    public void setDataReserva(Date dataReserva) {
+    public void setDataReserva(LocalDate dataReserva) {
         this.dataReserva = dataReserva;
     }
 
