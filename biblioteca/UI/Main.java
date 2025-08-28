@@ -1,5 +1,6 @@
 package biblioteca.UI;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -48,6 +49,16 @@ public class Main {
             minhaBiblioteca.realizarDevolucao(emprestimoParaDevolver);
             
             System.out.println("Devolução concluída. Status final do livro: " + (novoLivro.getStatus()));
+            
+            Multa novaMulta = new Multa(novoMembro, emprestimoParaDevolver, new BigDecimal(5.0), StatusMulta.PENDENTE);
+            minhaBiblioteca.adicionarMulta(novaMulta);
+            novaMulta.registrarPagamento();
+            if (novaMulta.getStatus() == StatusMulta.PAGA) {
+            System.out.println("Multa paga com sucesso!");
+            } else {
+                System.out.println("Falha ao pagar a multa.");
+            }
+
         }
 
         List<Livro> livrosEncontrados = minhaBiblioteca.buscarLivroPorAutor("Machado de Assis");

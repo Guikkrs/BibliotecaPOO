@@ -67,6 +67,12 @@ public class Biblioteca {
         return multasPendentes;
     }
 
+    public void adicionarMulta(Multa multa) {
+        if (multa != null) {
+            this.multas.add(multa);
+        }
+    }
+
     public void calcularMultas(Emprestimo emprestimo) {
         LocalDate dataAtual = LocalDate.now();
         LocalDate dataDevolucaoPrevista = emprestimo.getDataDevolucaoPrevista();
