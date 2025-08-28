@@ -7,7 +7,7 @@ public class Autor {
     private String nacionalidade;
 
 
-    public Autor(String nome, String nacionalidade) {
+    public Autor(String nome) {
         this.nome = nome;
         this.nacionalidade = nacionalidade;
     }
@@ -21,7 +21,6 @@ public class Autor {
     public String getNacionalidade() {
         return this.nacionalidade;
     }
-   
     
     @Override
     public String toString() {

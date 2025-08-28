@@ -20,7 +20,7 @@ public class Caixa {
         this.status = StatusCaixa.FECHADO;
     }
 
-    public void abrirCaixa() {
+    public void abrirCaixa(BigDecimal saldoInicial1) {
         if (this.status == StatusCaixa.ABERTO) {
             throw new IllegalStateException("O caixa já está aberto.");
         }

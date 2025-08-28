@@ -3,5 +3,6 @@ package biblioteca.Enum;
 public enum Permissao {
     ADMINISTRADOR,
     GERENTE,
-    USUARIO_COMUM
+    USUARIO_COMUM,
+    MEMBRO
 }

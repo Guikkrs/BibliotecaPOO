@@ -25,4 +25,8 @@ public class Livro extends ItemDoAcervo {
     public String toString() {
         return "Livro: " + getTitulo() + " | Autor: " + getAutor().getNome() + " | ISBN: " + this.isbn;
     }
+
+    Object getGenero() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }
