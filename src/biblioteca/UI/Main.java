@@ -3,11 +3,9 @@ package biblioteca.UI;
 import biblioteca.Excecoes.MembroComDebitoException;
 import biblioteca.Negocio.Autor;
 import biblioteca.Negocio.Biblioteca;
-import biblioteca.Negocio.Emprestimo;
 import biblioteca.Negocio.Livro;
 import biblioteca.Negocio.Membro;
 import biblioteca.Enum.Permissao;
-import biblioteca.Negocio.Pessoa;
 import java.io.IOException;
 import java.util.List;
 

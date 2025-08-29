@@ -1,6 +1,6 @@
 package biblioteca.Negocio;
 
-import biblioteca.Enum.StatusEmprestimo;
+import biblioteca.Enum.StatusReserva;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -10,13 +10,13 @@ public class Reserva implements java.io.Serializable {
     private Membro membro;
     private ItemDoAcervo itemdoarcevo;
     private LocalDate dataReserva;
-    private StatusEmprestimo status;
+    private StatusReserva status;
 
     public Reserva(Membro membro, ItemDoAcervo itemdoarcevo, LocalDate dataReserva) {
         this.membro = membro;
         this.itemdoarcevo = itemdoarcevo;
         this.dataReserva = dataReserva;
-        this.status = StatusEmprestimo.ATIVO;
+        this.status = StatusReserva.ATIVA;
     }
 
     public Membro getMembro() {
@@ -43,11 +43,11 @@ public class Reserva implements java.io.Serializable {
         this.dataReserva = dataReserva;
     }
 
-    public StatusEmprestimo getStatus() {
+    public StatusReserva getStatus() {
         return status;
     }
 
-    public void setStatus(StatusEmprestimo status) {
+    public void setStatus(StatusReserva status) {
         this.status = status;
     }
 

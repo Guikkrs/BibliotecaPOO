@@ -1,16 +1,16 @@
 package biblioteca.Negocio;
 
 import biblioteca.Enum.EnumStatusItem;
+import biblioteca.Enum.Permissao;
 import biblioteca.Enum.StatusEmprestimo;
 import biblioteca.Enum.StatusMulta;
 import biblioteca.Enum.StatusReserva;
-import Excecoes.ItemNaoEncontradoException;
-import Excecoes.MembroComDebitoException;
-import biblioteca.Persistencia.Repositorio;
-import biblioteca.Persistencia.RepositorioSerializado;
+import biblioteca.Excecoes.ItemNaoEncontradoException;
+import biblioteca.repositorios.*;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -22,6 +22,10 @@ public class Biblioteca implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    private Repositorio<Livro> repositorioLivro;
+    private Repositorio<Membro> repositorioMembro;
+    private Repositorio<Funcionario> repositorioFuncionario;
+    
     private List<Membro> membros;
     private List<Funcionario> funcionarios;
     private List<ItemDoAcervo> acervo;
@@ -32,10 +36,13 @@ public class Biblioteca implements Serializable {
     private Caixa caixaAtual;
     private Funcionario funcionarioLogado;
 
-    private transient Repositorio repositorio;
     private static Biblioteca instancia;
-
+   
     private Biblioteca() {
+       this.repositorioLivro = new RepositorioSerializado<Livro>("livros.dat");
+        this.repositorioMembro = new RepositorioSerializado<Membro>("membros.dat");
+        this.repositorioFuncionario = new RepositorioSerializado<Funcionario>("funcionarios.dat");
+
         this.membros = new ArrayList<>();
         this.funcionarios = new ArrayList<>();
         this.acervo = new ArrayList<>();
@@ -43,57 +50,72 @@ public class Biblioteca implements Serializable {
         this.reservas = new ArrayList<>();
         this.setores = new ArrayList<>();
         this.multas = new ArrayList<>();
-        this.repositorio = new RepositorioSerializado();
+
     }
 
+    
     public static Biblioteca getInstance() {
         if (instancia == null) {
-            try {
-                Repositorio repo = new RepositorioSerializado();
-                instancia = repo.carregar();
-                if (instancia == null) {
-                    instancia = new Biblioteca();
-                }
-                instancia.repositorio = repo;
-            } catch (IOException | ClassNotFoundException e) {
-                System.err.println("Nao foi possivel carregar os dados. Iniciando uma nova biblioteca.");
-                instancia = new Biblioteca();
-            }
+            instancia = new Biblioteca();
         }
         return instancia;
     }
 
-    public void salvar() throws IOException {
-        this.repositorio.salvar(this);
+    //==== Login/Logout ====
+    public void login(Funcionario f) {
+        this.funcionarioLogado = f;
+        System.out.println("Funcionário logado: " + f.getLogin());
     }
 
-    public boolean autenticarFuncionario(String login, String senha) {
-        for (Funcionario f : this.funcionarios) {
-            if (f.getLogin().equals(login) && f.getSenhaHash().equals(senha)) {
-                this.funcionarioLogado = f;
-                return true;
-            }
+    public void logout() {
+        if (funcionarioLogado != null) {
+            System.out.println("Funcionário " + funcionarioLogado.getLogin() + " deslogado.");
+            this.funcionarioLogado = null;
         }
-        return false;
     }
 
+    public Funcionario getFuncionarioLogado() {
+        return this.funcionarioLogado;
+    }
+
+    // ===== Cadastro e busca de itens =====
+    public void cadastrarLivro(Livro livro) {
+        if (funcionarioLogado == null) {
+            System.out.println("Nenhum funcionário logado. Operação não permitida.");
+            return;
+        }
+        if (funcionarioLogado.getPermissao() != Permissao.ADMINISTRADOR) {
+            System.out.println("Permissão insuficiente para cadastrar livros.");
+            return;
+        }
+
+        this.acervo.add(livro);
+        repositorioLivro.adicionar(livro);
+        System.out.println("Livro cadastrado: " + livro.getTitulo());
+    }
+
+    public void adicionarMaisCopias(ItemDoAcervo item, int quantidade) throws ItemNaoEncontradoException {
+    ItemDoAcervo itemNoAcervo = this.acervo.stream()
+        .filter(i -> i.getTitulo().equals(item.getTitulo()))
+        .findFirst()
+        .orElseThrow(() -> new ItemNaoEncontradoException("Item não encontrado no acervo."));
+
+        itemNoAcervo.setQuantidade(itemNoAcervo.getQuantidade() + quantidade);
+
+    }
+    
+    public boolean removerItem(ItemDoAcervo item) {
+        return this.acervo.remove(item);
+    } 
+    
     public void adicionarItem(ItemDoAcervo item, int quantidade) {
         item.setQuantidade(quantidade);
         this.acervo.add(item);
     }
 
-    public void adicionarMaisCopias(ItemDoAcervo item, int quantidade) throws ItemNaoEncontradoException {
-        ItemDoAcervo itemNoAcervo = this.acervo.stream()
-                .filter(i -> i.getTitulo().equals(item.getTitulo()))
-                .findFirst()
-                .orElseThrow(() -> new ItemNaoEncontradoException("Item nao encontrado no acervo."));
 
-        itemNoAcervo.setQuantidade(itemNoAcervo.getQuantidade() + quantidade);
-    }
+    
 
-    public boolean removerItem(ItemDoAcervo item) {
-        return this.acervo.remove(item);
-    }
 
     public List<ItemDoAcervo> buscarItemPorTitulo(String titulo) {
         return this.acervo.stream()
@@ -116,6 +138,11 @@ public class Biblioteca implements Serializable {
                 .collect(Collectors.toList());
     }
 
+    //=== Membros ===
+    public void adicionarMembro(Membro membro) {
+        this.membros.add(membro);
+    }
+
     public Membro buscarMembroPorCPF(String cpf) {
         return this.membros.stream()
                 .filter(membro -> membro.getCpf().equals(cpf))
@@ -123,9 +150,10 @@ public class Biblioteca implements Serializable {
                 .orElse(null);
     }
 
-    public boolean realizarEmprestimo(Membro membro, ItemDoAcervo item) throws MembroComDebitoException {
+    //==== Empréstimos e Reservas ====
+    public boolean realizarEmprestimo(Membro membro, ItemDoAcervo item) throws biblioteca.Excecoes.MembroComDebitoException {
         if (!debitosPendentes(membro).isEmpty()) {
-            throw new MembroComDebitoException("O membro possui debitos pendentes e nao pode realizar emprestimos.");
+            throw new biblioteca.Excecoes.MembroComDebitoException("O membro possui debitos pendentes e nao pode realizar emprestimos.");
         }
 
         if (item.verificarDisponibilidade() && item.getStatus() == EnumStatusItem.DISPONIVEL) {
@@ -156,7 +184,7 @@ public class Biblioteca implements Serializable {
     private void calcularMultasAtraso(Emprestimo emprestimo) {
         if (emprestimo.estaAtrasado()) {
             long diasAtraso = ChronoUnit.DAYS.between(emprestimo.getDataDevolucaoPrevista(), emprestimo.getDevolucaoRealizada());
-            double valorMulta = diasAtraso * 1.0;
+            BigDecimal valorMulta = BigDecimal.valueOf(diasAtraso * 1.0);
             Multa novaMulta = new Multa(emprestimo.getMembro(), emprestimo, valorMulta, StatusMulta.PENDENTE);
             this.multas.add(novaMulta);
         }
@@ -168,15 +196,17 @@ public class Biblioteca implements Serializable {
                 .collect(Collectors.toList());
     }
 
+    //==== Relatórios ====
     public List<Emprestimo> gerarRelatorioDeAtrasos() {
         return this.emprestimos.stream()
                 .filter(e -> e.getStatus() == StatusEmprestimo.ATIVO && e.estaAtrasado())
                 .collect(Collectors.toList());
     }
 
-    public Map<ItemDoAcervo, Integer> gerarRelatorioDeItensMaisEmprestados() {
+    public Map<ItemDoAcervo, Long> gerarRelatorioDeItensMaisEmprestados() {
         return this.emprestimos.stream()
-                .collect(Collectors.groupingBy(Emprestimo::getItemDoAcervo, Collectors.summingInt(e -> 1)));
+                .collect(Collectors.groupingBy(Emprestimo::getItemDoAcervo, Collectors.counting()
+                ));
     }
 
     public List<Reserva> gerarRelatorioDeReservasAtivas() {
@@ -186,11 +216,12 @@ public class Biblioteca implements Serializable {
     }
 
 
-
+    //==== Setores ====
     public void adicionarSetor(Setor setor) {
         this.setores.add(setor);
     }
 
+    //==== Caixa ====
     public void abrirCaixa(double saldoInicial) {
         if (this.caixaAtual == null || this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.FECHADO) {
             this.caixaAtual = new Caixa();
@@ -203,11 +234,34 @@ public class Biblioteca implements Serializable {
         }
     }
 
-    public void adicionarMembro(Membro membro) {
-        this.membros.add(membro);
-    }
-
+    //==== Funcionários ====
     public void adicionarFuncionario(Funcionario funcionario) {
         this.funcionarios.add(funcionario);
     }
+
+    public boolean autenticarFuncionario(String login, String senha) {
+        for (Funcionario f : this.funcionarios) {
+            if (f.getLogin().equals(login) && f.getSenhaHash().equals(senha)) {
+                this.funcionarioLogado = f;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //==== Persistência ====
+    public void salvar() throws IOException {
+        if (repositorioLivro != null) {
+            repositorioLivro.salvar();
+        }
+        if (repositorioMembro != null) {
+            repositorioMembro.salvar();
+        }
+        if (repositorioFuncionario != null) {
+            repositorioFuncionario.salvar();
+        }
+        System.out.println("Todos os dados foram salvos com sucesso!");
+    }
+
+
 }
