@@ -6,7 +6,6 @@ import biblioteca.Negocio.Biblioteca;
 import biblioteca.Negocio.Livro;
 import biblioteca.Negocio.Membro;
 import biblioteca.Enum.Permissao;
-import java.io.IOException;
 import java.util.List;
 
 public class Main {
@@ -49,11 +48,7 @@ public class Main {
 
         System.out.println("\n--- Fim da execucao ---");
 
-        try {
-            minhaBiblioteca.salvar();
-            System.out.println("Dados da biblioteca salvos com sucesso!");
-        } catch (IOException e) {
-            System.err.println("Erro ao salvar os dados da biblioteca: " + e.getMessage());
-        }
+        minhaBiblioteca.salvar();
+        System.out.println("Dados salvos com sucesso.");
     }
 }

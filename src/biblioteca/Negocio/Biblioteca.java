@@ -8,8 +8,6 @@ import biblioteca.Enum.StatusReserva;
 import biblioteca.Excecoes.ItemNaoEncontradoException;
 import biblioteca.repositorios.*;
 
-import java.io.IOException;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -18,9 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class Biblioteca implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class Biblioteca {
 
     private Repositorio<Livro> repositorioLivro;
     private Repositorio<Membro> repositorioMembro;
@@ -39,13 +35,14 @@ public class Biblioteca implements Serializable {
     private static Biblioteca instancia;
    
     private Biblioteca() {
-       this.repositorioLivro = new RepositorioSerializado<Livro>("livros.dat");
-        this.repositorioMembro = new RepositorioSerializado<Membro>("membros.dat");
-        this.repositorioFuncionario = new RepositorioSerializado<Funcionario>("funcionarios.dat");
 
-        this.membros = new ArrayList<>();
-        this.funcionarios = new ArrayList<>();
-        this.acervo = new ArrayList<>();
+        this.repositorioLivro = new RepositorioLivroCSV();
+        this.repositorioMembro = new RepositorioMembroCSV();
+        this.repositorioFuncionario = new RepositorioFuncionarioCSV();
+
+        this.membros = new ArrayList<>(repositorioMembro.carregar());
+        this.funcionarios = new ArrayList<>(repositorioFuncionario.carregar());
+        this.acervo = new ArrayList<>(repositorioLivro.carregar());
         this.emprestimos = new ArrayList<>();
         this.reservas = new ArrayList<>();
         this.setores = new ArrayList<>();
@@ -53,7 +50,6 @@ public class Biblioteca implements Serializable {
 
     }
 
-    
     public static Biblioteca getInstance() {
         if (instancia == null) {
             instancia = new Biblioteca();
@@ -90,7 +86,7 @@ public class Biblioteca implements Serializable {
         }
 
         this.acervo.add(livro);
-        repositorioLivro.adicionar(livro);
+        repositorioLivro.salvar(livro);
         System.out.println("Livro cadastrado: " + livro.getTitulo());
     }
 
@@ -112,10 +108,6 @@ public class Biblioteca implements Serializable {
         item.setQuantidade(quantidade);
         this.acervo.add(item);
     }
-
-
-    
-
 
     public List<ItemDoAcervo> buscarItemPorTitulo(String titulo) {
         return this.acervo.stream()
@@ -249,19 +241,20 @@ public class Biblioteca implements Serializable {
         return false;
     }
 
-    //==== Persistência ====
-    public void salvar() throws IOException {
-        if (repositorioLivro != null) {
-            repositorioLivro.salvar();
+    public void salvar() {
+        for (ItemDoAcervo item : acervo) {
+            if (item instanceof Livro) {
+                repositorioLivro.salvar((Livro) item);
+            }
         }
-        if (repositorioMembro != null) {
-            repositorioMembro.salvar();
+    
+        for (Membro m : membros) {
+            repositorioMembro.salvar(m);
         }
-        if (repositorioFuncionario != null) {
-            repositorioFuncionario.salvar();
+        for (Funcionario f : funcionarios) {
+            repositorioFuncionario.salvar(f);
         }
-        System.out.println("Todos os dados foram salvos com sucesso!");
+        System.out.println("Todos os dados foram salvos em CSV!");
     }
-
 
 }
