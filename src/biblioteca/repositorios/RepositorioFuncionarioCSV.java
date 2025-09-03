@@ -50,6 +50,13 @@ public class RepositorioFuncionarioCSV implements Repositorio<Funcionario> {
         return new ArrayList<>(funcionarios);
     }
 
+    public Funcionario autenticar(String login, String senha) {
+        return funcionarios.stream()
+                .filter(f -> f.getLogin().equals(login) && f.getSenhaHash().equals(senha))
+                .findFirst()
+                .orElse(null);
+    }
+
     private void carregarCSV() {
         File file = new File(arquivo);
         if (!file.exists()) return;
