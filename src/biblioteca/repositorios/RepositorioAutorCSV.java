@@ -1,11 +1,10 @@
 package biblioteca.repositorios;
 
+import biblioteca.Negocio.Autor;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import biblioteca.Negocio.Autor;
 
 public class RepositorioAutorCSV {
     private List<Autor> autores = new ArrayList<>();
@@ -22,8 +21,8 @@ public class RepositorioAutorCSV {
 
     public Optional<Autor> buscarPorNome(String nome) {
         return autores.stream()
-                      .filter(a -> a.getNome().equalsIgnoreCase(nome))
-                      .findFirst();
+                    .filter(a -> a.getNome().equalsIgnoreCase(nome))
+                    .findFirst();
     }
 
     public List<Autor> listarTodos() {

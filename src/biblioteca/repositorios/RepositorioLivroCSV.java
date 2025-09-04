@@ -1,10 +1,10 @@
 package biblioteca.repositorios;
 
+import biblioteca.Enum.EnumSetor;
+import biblioteca.Negocio.Autor;
+import biblioteca.Negocio.Livro;
 import java.io.*;
 import java.util.*;
-import biblioteca.Negocio.Livro;
-import biblioteca.Negocio.Autor;
-import biblioteca.Enum.EnumSetor;
 
 public class RepositorioLivroCSV implements Repositorio<Livro> {
 
@@ -17,7 +17,7 @@ public class RepositorioLivroCSV implements Repositorio<Livro> {
 
     // Adiciona um livro ao repositório, evitando duplicatas
     public void salvar(Livro livro) {
-        if (!livros.contains(livro)) { 
+        if (!livros.contains(livro)) {
             livros.add(livro);
             salvarCSV();
         }
@@ -25,13 +25,13 @@ public class RepositorioLivroCSV implements Repositorio<Livro> {
 
     public Optional<Livro> buscarPorTitulo(String titulo) {
         return livros.stream()
-                     .filter(l -> l.getTitulo().equalsIgnoreCase(titulo))
-                     .findFirst();
+                .filter(l -> l.getTitulo().equalsIgnoreCase(titulo))
+                .findFirst();
     }
 
     // Lista todos os livros
     public List<Livro> listar() {
-        return new ArrayList<>(livros); 
+        return new ArrayList<>(livros);
     }
 
     @Override
@@ -62,13 +62,13 @@ public class RepositorioLivroCSV implements Repositorio<Livro> {
         try (PrintWriter pw = new PrintWriter(new FileWriter(arquivo))) {
             for (Livro l : livros) {
                 pw.println(
-                    l.getTitulo() + "," +
-                    l.getAutor().getNome() + "," +
-                    l.getAutor().getNacionalidade() + "," +
-                    l.getAno() + "," +
-                    l.getSetor() + "," +
-                    l.getNumeroDePaginas() + "," +
-                    l.getIsbn()
+                        l.getTitulo() + ";"
+                        + l.getAutor().getNome() + ";"
+                        + l.getAutor().getNacionalidade() + ";"
+                        + l.getAno() + ";"
+                        + l.getSetor() + ";"
+                        + l.getNumeroDePaginas() + ";"
+                        + l.getIsbn()
                 );
             }
         } catch (IOException e) {
@@ -79,8 +79,9 @@ public class RepositorioLivroCSV implements Repositorio<Livro> {
     //carrega todos os livros no csv
     private void carregarCSV() {
         File file = new File(arquivo);
-        if (!file.exists()) return; // não faz nada se o arquivo ainda não existe
-
+        if (!file.exists()) {
+            return; // não faz nada se o arquivo ainda não existe
+        }
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String linha;
             while ((linha = reader.readLine()) != null) {

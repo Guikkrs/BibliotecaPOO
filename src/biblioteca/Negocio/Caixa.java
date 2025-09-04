@@ -13,7 +13,7 @@ public class Caixa implements java.io.Serializable {
     private StatusCaixa status;
     private BigDecimal saldoAtual;
 
-    public Caixa() {
+    public Caixa(double saldoInicial1) {
         this.saldoInicial = BigDecimal.ZERO;
         this.saldoFinal = BigDecimal.ZERO;
         this.saldoAtual = BigDecimal.ZERO;

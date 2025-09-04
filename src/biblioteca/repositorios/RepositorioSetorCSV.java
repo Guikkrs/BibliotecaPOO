@@ -1,8 +1,8 @@
 package biblioteca.repositorios;
 
+import biblioteca.Negocio.Setor;
 import java.io.*;
 import java.util.*;
-import biblioteca.Negocio.Setor;
 
 public class RepositorioSetorCSV {
 
@@ -20,8 +20,8 @@ public class RepositorioSetorCSV {
 
     public Optional<Setor> buscarPorNome(String nome) {
         return setores.stream()
-                      .filter(s -> s.getNome().equalsIgnoreCase(nome))
-                      .findFirst();
+                    .filter(s -> s.getNome().equalsIgnoreCase(nome))
+                    .findFirst();
     }
 
     public List<Setor> listarTodos() { return new ArrayList<>(setores); }

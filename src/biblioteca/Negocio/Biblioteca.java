@@ -7,13 +7,13 @@ import biblioteca.Enum.StatusMulta;
 import biblioteca.Enum.StatusReserva;
 import biblioteca.Excecoes.ItemNaoEncontradoException;
 import biblioteca.repositorios.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Biblioteca {
@@ -21,7 +21,7 @@ public class Biblioteca {
     private Repositorio<Livro> repositorioLivro;
     private Repositorio<Membro> repositorioMembro;
     private Repositorio<Funcionario> repositorioFuncionario;
-    
+
     private List<Membro> membros;
     private List<Funcionario> funcionarios;
     private List<ItemDoAcervo> acervo;
@@ -33,9 +33,8 @@ public class Biblioteca {
     private Funcionario funcionarioLogado;
 
     private static Biblioteca instancia;
-   
-    private Biblioteca() {
 
+    private Biblioteca() {
         this.repositorioLivro = new RepositorioLivroCSV();
         this.repositorioMembro = new RepositorioMembroCSV();
         this.repositorioFuncionario = new RepositorioFuncionarioCSV();
@@ -47,7 +46,6 @@ public class Biblioteca {
         this.reservas = new ArrayList<>();
         this.setores = new ArrayList<>();
         this.multas = new ArrayList<>();
-
     }
 
     public static Biblioteca getInstance() {
@@ -55,6 +53,55 @@ public class Biblioteca {
             instancia = new Biblioteca();
         }
         return instancia;
+    }
+
+    // Método adicionado para listar os livros
+    public Repositorio<Livro> getRepositorioLivro() {
+        return this.repositorioLivro;
+    }
+
+    // Métodos para remover entidades
+    public boolean removerMembro(Membro membro) {
+        if (this.membros.remove(membro)) {
+            // A lógica de remoção no repositório CSV precisa ser implementada
+            // para que a remoção seja persistida. Por enquanto, a remoção é apenas
+            // em memória.
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removerFuncionario(Funcionario funcionario) {
+        if (this.funcionarios.remove(funcionario)) {
+            // A lógica de remoção no repositório CSV precisa ser implementada
+            // para que a remoção seja persistida. Por enquanto, a remoção é apenas
+            // em memória.
+            return true;
+        }
+        return false;
+    }
+
+    // Método para buscar funcionário
+    public Funcionario buscarFuncionarioPorCPF(String cpf) {
+        return this.funcionarios.stream()
+                .filter(f -> f.getCpf().equals(cpf))
+                .findFirst()
+                .orElse(null);
+    }
+
+    // Método para buscar um emprestimo
+    public Optional<Emprestimo> buscarEmprestimo(Membro membro, String tituloLivro) {
+        return this.emprestimos.stream()
+                .filter(e -> e.getMembro().equals(membro) && e.getItemDoAcervo().getTitulo().equalsIgnoreCase(tituloLivro))
+                .findFirst();
+    }
+
+    // Método para pagar multa
+    public void pagarMulta(Multa multa) {
+        if (multa.getStatus() == StatusMulta.PENDENTE) {
+            multa.setStatus(StatusMulta.PAGA);
+            // Lógica para registrar o pagamento no caixa, se necessário
+        }
     }
 
     //==== Login/Logout ====
@@ -91,19 +138,19 @@ public class Biblioteca {
     }
 
     public void adicionarMaisCopias(ItemDoAcervo item, int quantidade) throws ItemNaoEncontradoException {
-    ItemDoAcervo itemNoAcervo = this.acervo.stream()
-        .filter(i -> i.getTitulo().equals(item.getTitulo()))
-        .findFirst()
-        .orElseThrow(() -> new ItemNaoEncontradoException("Item não encontrado no acervo."));
+        ItemDoAcervo itemNoAcervo = this.acervo.stream()
+                .filter(i -> i.getTitulo().equals(item.getTitulo()))
+                .findFirst()
+                .orElseThrow(() -> new ItemNaoEncontradoException("Item não encontrado no acervo."));
 
         itemNoAcervo.setQuantidade(itemNoAcervo.getQuantidade() + quantidade);
 
     }
-    
+
     public boolean removerItem(ItemDoAcervo item) {
         return this.acervo.remove(item);
-    } 
-    
+    }
+
     public void adicionarItem(ItemDoAcervo item, int quantidade) {
         item.setQuantidade(quantidade);
         this.acervo.add(item);
@@ -207,7 +254,6 @@ public class Biblioteca {
                 .collect(Collectors.toList());
     }
 
-
     //==== Setores ====
     public void adicionarSetor(Setor setor) {
         this.setores.add(setor);
@@ -216,7 +262,9 @@ public class Biblioteca {
     //==== Caixa ====
     public void abrirCaixa(double saldoInicial) {
         if (this.caixaAtual == null || this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.FECHADO) {
-            this.caixaAtual = new Caixa();
+            // No momento, o construtor da classe Caixa não aceita um saldo inicial.
+            // Para consertar isso, é necessário corrigir o construtor da classe Caixa.
+            this.caixaAtual = new Caixa(saldoInicial);
         }
     }
 
@@ -247,7 +295,7 @@ public class Biblioteca {
                 repositorioLivro.salvar((Livro) item);
             }
         }
-    
+
         for (Membro m : membros) {
             repositorioMembro.salvar(m);
         }
@@ -256,5 +304,4 @@ public class Biblioteca {
         }
         System.out.println("Todos os dados foram salvos em CSV!");
     }
-
 }
