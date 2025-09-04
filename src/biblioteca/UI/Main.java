@@ -694,11 +694,21 @@ public class Main {
     }
 
     private static void abrirCaixa() {
-        System.out.print("Digite o saldo inicial: ");
+    System.out.print("Digite o saldo inicial (ex: 100,50): ");
+    try {
         BigDecimal saldoInicial = sc.nextBigDecimal();
         sc.nextLine();
-        minhaBiblioteca.abrirCaixa(saldoInicial.doubleValue());
+
+       
+        minhaBiblioteca.abrirCaixa(saldoInicial);
+
+    } catch (java.util.InputMismatchException e) {
+        System.out.println("ERRO: Valor inválido. Por favor, use a vírgula como separador decimal.");
+        sc.nextLine();
+    } catch (IllegalArgumentException | IllegalStateException e) {
+        System.out.println("ERRO: " + e.getMessage());
     }
+}
 
     private static void receberMulta() {
         System.out.print("CPF do membro que irá pagar a multa: ");

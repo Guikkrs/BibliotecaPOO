@@ -93,24 +93,27 @@ public class Biblioteca {
     }
 
     // Método para pagar multa
-    public void pagarMulta(Multa multa) {
-        if (multa.getStatus() == StatusMulta.PENDENTE) {
-            multa.setStatus(StatusMulta.PAGA);
-             System.out.println("Multa de R$" + multa.getValor() + " paga com sucesso pelo membro " 
-                               + multa.getMembro().getNome() + ".");
+   public void pagarMulta(Multa multa) {
+   
+    if (multa.registrarPagamento()) { 
+        
+        System.out.println("Multa de R$" + multa.getValor() + " paga com sucesso pelo membro "
+                                + multa.getMembro().getNome() + ".");
 
-            if (this.caixaAtual != null && this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.ABERTO) {
-                this.caixaAtual.registrarEntrada(multa.getValor());
-                System.out.println("Pagamento registrado no caixa.");
-            } else {
-                System.out.println("Caixa fechado! Pagamento não registrado no caixa.");
-            }
+        if (this.caixaAtual != null && this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.ABERTO) {
+            this.caixaAtual.registrarEntrada(multa.getValor());
+            System.out.println("Pagamento registrado no caixa. Data do pagamento: " + multa.getDataPagamento());
         } else {
-            System.out.println("A multa já está paga ou não existe.");
+            System.out.println("Caixa fechado! Pagamento não registrado no caixa.");
         }
-    }
 
-    //==== Login/Logout ====
+    } else {
+       
+        System.out.println("A multa já estava paga anteriormente.");
+    }
+}
+
+    //Login/Logout
     public void login(Funcionario f) {
         this.funcionarioLogado = f;
         System.out.println("Funcionário logado: " + f.getLogin());
@@ -127,7 +130,7 @@ public class Biblioteca {
         return this.funcionarioLogado;
     }
 
-    // ===== Cadastro e busca de itens =====
+    //Cadastro e busca de itens
     public void cadastrarLivro(Livro livro) {
         if (funcionarioLogado == null) {
             System.out.println("Nenhum funcionário logado. Operação não permitida.");
@@ -189,7 +192,7 @@ public class Biblioteca {
                 .collect(Collectors.toList());
     }
 
-    //=== Membros ===
+    //Membros
     public void adicionarMembro(Membro membro) {
         this.membros.add(membro);
     }
@@ -201,7 +204,7 @@ public class Biblioteca {
                 .orElse(null);
     }
 
-    //==== Empréstimos e Reservas ====
+    //Empréstimos e Reservas
     public boolean realizarEmprestimo(Membro membro,    ItemDoAcervo item) throws biblioteca.Excecoes.MembroComDebitoException {
     if (!debitosPendentes(membro).isEmpty()) {
         throw new biblioteca.Excecoes.MembroComDebitoException("O membro possui débitos pendentes e não pode realizar empréstimos.");
@@ -235,7 +238,7 @@ public class Biblioteca {
         item.setQuantidade(item.getQuantidade() + 1);
         item.setStatus(EnumStatusItem.DISPONIVEL);
 
-        if (emprestimo.estaAtrasado()) {    
+        if (emprestimo.estaAtrasado()) {
             calcularMultasAtraso(emprestimo);
         }
     }
@@ -250,22 +253,30 @@ public class Biblioteca {
         return false;
     }
 
-    private void calcularMultasAtraso(Emprestimo emprestimo) {
-        if (emprestimo.estaAtrasado()) {
-            long diasAtraso = ChronoUnit.DAYS.between(emprestimo.getDataDevolucaoPrevista(), emprestimo.getDevolucaoRealizada());
+   private void calcularMultasAtraso(Emprestimo emprestimo) {
+    
+    if (emprestimo.estaAtrasado() && emprestimo.getDevolucaoRealizada() != null) {
+        
+      
+        long diasAtraso = ChronoUnit.DAYS.between(emprestimo.getDataDevolucaoPrevista(), emprestimo.getDevolucaoRealizada());
+        
+       
+        if (diasAtraso > 0) {
+           
             BigDecimal valorMulta = BigDecimal.valueOf(diasAtraso * 1.0);
-            Multa novaMulta = new Multa(emprestimo.getMembro(), emprestimo, valorMulta, StatusMulta.PENDENTE);
+            Multa novaMulta = new Multa(emprestimo.getMembro(), emprestimo, valorMulta);
             this.multas.add(novaMulta);
+            System.out.println("INFO: Multa de R$" + valorMulta + " gerada por atraso na devolução.");
         }
     }
-
+}
     public List<Multa> debitosPendentes(Membro membro) {
         return this.multas.stream()
                 .filter(multa -> multa.getMembro().equals(membro) && multa.getStatus() == StatusMulta.PENDENTE)
                 .collect(Collectors.toList());
     }
 
-    //==== Relatórios ====
+    //Relatório
     public List<Emprestimo> gerarRelatorioDeAtrasos() {
         return this.emprestimos.stream()
                 .filter(e -> e.getStatus() == StatusEmprestimo.ATIVO && e.estaAtrasado())
@@ -284,19 +295,20 @@ public class Biblioteca {
                 .collect(Collectors.toList());
     }
 
-    //==== Setores ====
+    //Setores
     public void adicionarSetor(Setor setor) {
         this.setores.add(setor);
     }
 
-    //==== Caixa ====
-    public void abrirCaixa(double saldoInicial) {
-        if (this.caixaAtual == null || this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.FECHADO) {
-            // No momento, o construtor da classe Caixa não aceita um saldo inicial.
-            // Para consertar isso, é necessário corrigir o construtor da classe Caixa.
-            this.caixaAtual = new Caixa(saldoInicial);
-        }
+   
+    public void abrirCaixa(BigDecimal saldoInicial) {
+    if (this.caixaAtual == null || this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.FECHADO) {
+        this.caixaAtual = new Caixa(saldoInicial);
+        System.out.println("Caixa aberto com saldo inicial de R$" + saldoInicial);
+    } else {
+        System.out.println("O caixa do dia já está aberto.");
     }
+}
 
     public void fecharCaixa() {
         if (this.caixaAtual != null && this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.ABERTO) {
@@ -304,7 +316,7 @@ public class Biblioteca {
         }
     }
 
-    //==== Funcionários ====
+    //Funcionários
     public void adicionarFuncionario(Funcionario funcionario) {
         this.funcionarios.add(funcionario);
     }
