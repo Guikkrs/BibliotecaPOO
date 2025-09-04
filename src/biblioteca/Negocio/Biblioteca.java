@@ -63,9 +63,7 @@ public class Biblioteca {
     // Métodos para remover entidades
     public boolean removerMembro(Membro membro) {
         if (this.membros.remove(membro)) {
-            // A lógica de remoção no repositório CSV precisa ser implementada
-            // para que a remoção seja persistida. Por enquanto, a remoção é apenas
-            // em memória.
+            repositorioMembro.remover(membros.indexOf(membro));
             return true;
         }
         return false;
@@ -73,9 +71,7 @@ public class Biblioteca {
 
     public boolean removerFuncionario(Funcionario funcionario) {
         if (this.funcionarios.remove(funcionario)) {
-            // A lógica de remoção no repositório CSV precisa ser implementada
-            // para que a remoção seja persistida. Por enquanto, a remoção é apenas
-            // em memória.
+            repositorioFuncionario.remover(funcionarios.indexOf(funcionario));
             return true;
         }
         return false;
@@ -100,7 +96,17 @@ public class Biblioteca {
     public void pagarMulta(Multa multa) {
         if (multa.getStatus() == StatusMulta.PENDENTE) {
             multa.setStatus(StatusMulta.PAGA);
-            // Lógica para registrar o pagamento no caixa, se necessário
+             System.out.println("Multa de R$" + multa.getValor() + " paga com sucesso pelo membro " 
+                               + multa.getMembro().getNome() + ".");
+
+            if (this.caixaAtual != null && this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.ABERTO) {
+                this.caixaAtual.registrarEntrada(multa.getValor());
+                System.out.println("Pagamento registrado no caixa.");
+            } else {
+                System.out.println("Caixa fechado! Pagamento não registrado no caixa.");
+            }
+        } else {
+            System.out.println("A multa já está paga ou não existe.");
         }
     }
 
@@ -148,7 +154,13 @@ public class Biblioteca {
     }
 
     public boolean removerItem(ItemDoAcervo item) {
-        return this.acervo.remove(item);
+        if(this.acervo.remove(item)) {
+            if(item instanceof Livro) {
+                repositorioLivro.remover(repositorioLivro.carregar().indexOf(item));
+            }
+            return true;
+        }
+        return false;
     }
 
     public void adicionarItem(ItemDoAcervo item, int quantidade) {
@@ -196,18 +208,25 @@ public class Biblioteca {
         }
 
         if (item.verificarDisponibilidade() && item.getStatus() == EnumStatusItem.DISPONIVEL) {
+            item.setQuantidade(item.getQuantidade() - 1);
             Emprestimo novoEmprestimo = new Emprestimo(membro, item, LocalDate.now());
             this.emprestimos.add(novoEmprestimo);
-            item.setStatus(EnumStatusItem.EMPRESTADO);
+            item.setStatus(item.getQuantidade() == 0 ? EnumStatusItem.EMPRESTADO : EnumStatusItem.DISPONIVEL);
             return true;
         }
         return false;
     }
 
     public void realizarDevolucao(Emprestimo emprestimo) {
-        emprestimo.finalizarEmprestimo(LocalDate.now());
-        emprestimo.getItemDoAcervo().setStatus(EnumStatusItem.DISPONIVEL);
-        calcularMultasAtraso(emprestimo);
+        emprestimo.setDevolucaoRealizada(LocalDate.now());
+        emprestimo.setStatus(StatusEmprestimo.DEVOLVIDO);
+        ItemDoAcervo item = emprestimo.getItemDoAcervo();
+        item.setQuantidade(item.getQuantidade() + 1);
+        item.setStatus(EnumStatusItem.DISPONIVEL);
+
+        if (emprestimo.estaAtrasado()) {    
+            calcularMultasAtraso(emprestimo);
+        }
     }
 
     public boolean realizarReserva(Membro membro, ItemDoAcervo item) {
