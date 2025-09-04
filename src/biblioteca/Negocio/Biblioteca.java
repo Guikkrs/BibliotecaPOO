@@ -202,20 +202,31 @@ public class Biblioteca {
     }
 
     //==== Empréstimos e Reservas ====
-    public boolean realizarEmprestimo(Membro membro, ItemDoAcervo item) throws biblioteca.Excecoes.MembroComDebitoException {
-        if (!debitosPendentes(membro).isEmpty()) {
-            throw new biblioteca.Excecoes.MembroComDebitoException("O membro possui debitos pendentes e nao pode realizar emprestimos.");
+    public boolean realizarEmprestimo(Membro membro,    ItemDoAcervo item) throws biblioteca.Excecoes.MembroComDebitoException {
+    if (!debitosPendentes(membro).isEmpty()) {
+        throw new biblioteca.Excecoes.MembroComDebitoException("O membro possui débitos pendentes e não pode realizar empréstimos.");
+    }
+
+        System.out.println("Tentando emprestar: " + item.getTitulo() + " | Quantidade: " + item.getQuantidade() + " | Status: " + item.getStatus());
+
+    if (item.getQuantidade() > 0 && item.getStatus() ==      EnumStatusItem.DISPONIVEL) {
+        item.setQuantidade(item.getQuantidade() - 1);
+
+        Emprestimo novoEmprestimo = new Emprestimo(membro, item, LocalDate.now());
+        this.emprestimos.add(novoEmprestimo);
+
+        if (item.getQuantidade() == 0) {
+            item.setStatus(EnumStatusItem.EMPRESTADO);
         }
 
-        if (item.verificarDisponibilidade() && item.getStatus() == EnumStatusItem.DISPONIVEL) {
-            item.setQuantidade(item.getQuantidade() - 1);
-            Emprestimo novoEmprestimo = new Emprestimo(membro, item, LocalDate.now());
-            this.emprestimos.add(novoEmprestimo);
-            item.setStatus(item.getQuantidade() == 0 ? EnumStatusItem.EMPRESTADO : EnumStatusItem.DISPONIVEL);
-            return true;
-        }
+        System.out.println("Empréstimo realizado com sucesso!");
+        return true;
+    }
+
+        System.out.println("Não foi possível realizar o empréstimo. Livro indisponível ou sem cópias.");
         return false;
     }
+
 
     public void realizarDevolucao(Emprestimo emprestimo) {
         emprestimo.setDevolucaoRealizada(LocalDate.now());
