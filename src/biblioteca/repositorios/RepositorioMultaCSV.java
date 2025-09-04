@@ -3,14 +3,9 @@ package biblioteca.repositorios;
 import biblioteca.Negocio.Emprestimo;
 import biblioteca.Negocio.Membro;
 import biblioteca.Negocio.Multa;
-import biblioteca.Enum.StatusMulta;
 import java.io.*;
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class RepositorioMultaCSV implements Repositorio<Multa> {
 

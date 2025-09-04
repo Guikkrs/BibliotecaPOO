@@ -6,7 +6,6 @@ import biblioteca.Enum.StatusEmprestimo;
 import biblioteca.Enum.StatusMulta;
 import biblioteca.Enum.StatusReserva;
 import biblioteca.Excecoes.ItemNaoEncontradoException;
-import biblioteca.Excecoes.MembroComDebitoException;
 import biblioteca.repositorios.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -68,20 +67,20 @@ public class Biblioteca {
 
     // Métodos para remover entidades
     public boolean removerMembro(Membro membro) {
-        if (this.membros.remove(membro)) {
-            // A lógica de remoção no repositório CSV precisa ser implementada
-            // para que a remoção seja persistida. Por enquanto, a remoção é apenas
-            // em memória.
+        int index = this.membros.indexOf(membro);
+        if (index >= 0) {
+            this.membros.remove(index);
+            repositorioMembro.remover(index);
             return true;
         }
         return false;
     }
 
     public boolean removerFuncionario(Funcionario funcionario) {
-        if (this.funcionarios.remove(funcionario)) {
-            // A lógica de remoção no repositório CSV precisa ser implementada
-            // para que a remoção seja persistida. Por enquanto, a remoção é apenas
-            // em memória.
+        int index = this.funcionarios.indexOf(funcionario);
+        if (index >= 0) {
+            this.funcionarios.remove(index);
+            repositorioFuncionario.remover(index);
             return true;
         }
         return false;
