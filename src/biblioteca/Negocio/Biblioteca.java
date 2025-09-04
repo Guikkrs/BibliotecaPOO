@@ -6,6 +6,7 @@ import biblioteca.Enum.StatusEmprestimo;
 import biblioteca.Enum.StatusMulta;
 import biblioteca.Enum.StatusReserva;
 import biblioteca.Excecoes.ItemNaoEncontradoException;
+import biblioteca.Excecoes.MembroComDebitoException;
 import biblioteca.repositorios.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class Biblioteca {
@@ -21,6 +23,8 @@ public class Biblioteca {
     private Repositorio<Livro> repositorioLivro;
     private Repositorio<Membro> repositorioMembro;
     private Repositorio<Funcionario> repositorioFuncionario;
+    private Repositorio<Emprestimo> repositorioEmprestimo; // NOVO
+    private Repositorio<Multa> repositorioMulta;         // NOVO
 
     private List<Membro> membros;
     private List<Funcionario> funcionarios;
@@ -38,14 +42,16 @@ public class Biblioteca {
         this.repositorioLivro = new RepositorioLivroCSV();
         this.repositorioMembro = new RepositorioMembroCSV();
         this.repositorioFuncionario = new RepositorioFuncionarioCSV();
+        this.repositorioEmprestimo = new RepositorioEmprestimoCSV(repositorioMembro, repositorioLivro); // NOVO
+        this.repositorioMulta = new RepositorioMultaCSV(repositorioMembro, repositorioEmprestimo); // NOVO
 
         this.membros = new ArrayList<>(repositorioMembro.carregar());
         this.funcionarios = new ArrayList<>(repositorioFuncionario.carregar());
         this.acervo = new ArrayList<>(repositorioLivro.carregar());
-        this.emprestimos = new ArrayList<>();
+        this.emprestimos = new ArrayList<>(repositorioEmprestimo.carregar()); // Carrega os empréstimos
+        this.multas = new ArrayList<>(repositorioMulta.carregar()); // Carrega as multas
         this.reservas = new ArrayList<>();
         this.setores = new ArrayList<>();
-        this.multas = new ArrayList<>();
     }
 
     public static Biblioteca getInstance() {
@@ -63,7 +69,9 @@ public class Biblioteca {
     // Métodos para remover entidades
     public boolean removerMembro(Membro membro) {
         if (this.membros.remove(membro)) {
-            repositorioMembro.remover(membros.indexOf(membro));
+            // A lógica de remoção no repositório CSV precisa ser implementada
+            // para que a remoção seja persistida. Por enquanto, a remoção é apenas
+            // em memória.
             return true;
         }
         return false;
@@ -71,7 +79,9 @@ public class Biblioteca {
 
     public boolean removerFuncionario(Funcionario funcionario) {
         if (this.funcionarios.remove(funcionario)) {
-            repositorioFuncionario.remover(funcionarios.indexOf(funcionario));
+            // A lógica de remoção no repositório CSV precisa ser implementada
+            // para que a remoção seja persistida. Por enquanto, a remoção é apenas
+            // em memória.
             return true;
         }
         return false;
@@ -93,27 +103,25 @@ public class Biblioteca {
     }
 
     // Método para pagar multa
-   public void pagarMulta(Multa multa) {
-   
-    if (multa.registrarPagamento()) { 
-        
-        System.out.println("Multa de R$" + multa.getValor() + " paga com sucesso pelo membro "
-                                + multa.getMembro().getNome() + ".");
-
-        if (this.caixaAtual != null && this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.ABERTO) {
-            this.caixaAtual.registrarEntrada(multa.getValor());
-            System.out.println("Pagamento registrado no caixa. Data do pagamento: " + multa.getDataPagamento());
-        } else {
-            System.out.println("Caixa fechado! Pagamento não registrado no caixa.");
+    public void pagarMulta(Multa multa) {
+        // Usa o método registrarPagamento da classe Multa, que já atualiza o status e a data
+        if (multa.registrarPagamento()) {
+            if (this.caixaAtual != null && this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.ABERTO) {
+                this.caixaAtual.registrarEntrada(multa.getValor());
+            } else {
+                System.out.println("Caixa fechado! Pagamento não registrado no caixa.");
+            }
         }
-
-    } else {
-       
-        System.out.println("A multa já estava paga anteriormente.");
     }
-}
 
-    //Login/Logout
+    // Método para buscar emprestimos de um membro
+    public List<Emprestimo> buscarEmprestimosDoMembro(Membro membro) {
+        return this.emprestimos.stream()
+                .filter(e -> e.getMembro().equals(membro))
+                .collect(Collectors.toList());
+    }
+
+    //==== Login/Logout ====
     public void login(Funcionario f) {
         this.funcionarioLogado = f;
         System.out.println("Funcionário logado: " + f.getLogin());
@@ -130,7 +138,7 @@ public class Biblioteca {
         return this.funcionarioLogado;
     }
 
-    //Cadastro e busca de itens
+    // ===== Cadastro e busca de itens =====
     public void cadastrarLivro(Livro livro) {
         if (funcionarioLogado == null) {
             System.out.println("Nenhum funcionário logado. Operação não permitida.");
@@ -153,12 +161,11 @@ public class Biblioteca {
                 .orElseThrow(() -> new ItemNaoEncontradoException("Item não encontrado no acervo."));
 
         itemNoAcervo.setQuantidade(itemNoAcervo.getQuantidade() + quantidade);
-
     }
 
     public boolean removerItem(ItemDoAcervo item) {
-        if(this.acervo.remove(item)) {
-            if(item instanceof Livro) {
+        if (this.acervo.remove(item)) {
+            if (item instanceof Livro) {
                 repositorioLivro.remover(repositorioLivro.carregar().indexOf(item));
             }
             return true;
@@ -192,7 +199,7 @@ public class Biblioteca {
                 .collect(Collectors.toList());
     }
 
-    //Membros
+    //=== Membros ===
     public void adicionarMembro(Membro membro) {
         this.membros.add(membro);
     }
@@ -204,43 +211,32 @@ public class Biblioteca {
                 .orElse(null);
     }
 
-    //Empréstimos e Reservas
-    public boolean realizarEmprestimo(Membro membro,    ItemDoAcervo item) throws biblioteca.Excecoes.MembroComDebitoException {
-    if (!debitosPendentes(membro).isEmpty()) {
-        throw new biblioteca.Excecoes.MembroComDebitoException("O membro possui débitos pendentes e não pode realizar empréstimos.");
-    }
-
-        System.out.println("Tentando emprestar: " + item.getTitulo() + " | Quantidade: " + item.getQuantidade() + " | Status: " + item.getStatus());
-
-    if (item.getQuantidade() > 0 && item.getStatus() ==      EnumStatusItem.DISPONIVEL) {
-        item.setQuantidade(item.getQuantidade() - 1);
-
-        Emprestimo novoEmprestimo = new Emprestimo(membro, item, LocalDate.now());
-        this.emprestimos.add(novoEmprestimo);
-
-        if (item.getQuantidade() == 0) {
-            item.setStatus(EnumStatusItem.EMPRESTADO);
+    //==== Empréstimos e Reservas ====
+    public boolean realizarEmprestimo(Membro membro, ItemDoAcervo item) throws biblioteca.Excecoes.MembroComDebitoException {
+        if (!debitosPendentes(membro).isEmpty()) {
+            throw new biblioteca.Excecoes.MembroComDebitoException("O membro possui debitos pendentes e nao pode realizar emprestimos.");
         }
 
-        System.out.println("Empréstimo realizado com sucesso!");
-        return true;
-    }
-
-        System.out.println("Não foi possível realizar o empréstimo. Livro indisponível ou sem cópias.");
+        if (item.verificarDisponibilidade() && item.getStatus() == EnumStatusItem.DISPONIVEL) {
+            String idEmprestimo = UUID.randomUUID().toString();
+            Emprestimo novoEmprestimo = new Emprestimo(idEmprestimo, membro, item, LocalDate.now());
+            this.emprestimos.add(novoEmprestimo);
+            item.setQuantidade(item.getQuantidade() - 1);
+            if (item.getQuantidade() == 0) {
+                item.setStatus(EnumStatusItem.EMPRESTADO);
+            }
+            return true;
+        }
         return false;
     }
 
-
     public void realizarDevolucao(Emprestimo emprestimo) {
-        emprestimo.setDevolucaoRealizada(LocalDate.now());
-        emprestimo.setStatus(StatusEmprestimo.DEVOLVIDO);
-        ItemDoAcervo item = emprestimo.getItemDoAcervo();
-        item.setQuantidade(item.getQuantidade() + 1);
-        item.setStatus(EnumStatusItem.DISPONIVEL);
-
-        if (emprestimo.estaAtrasado()) {
-            calcularMultasAtraso(emprestimo);
+        emprestimo.finalizarEmprestimo(LocalDate.now());
+        emprestimo.getItemDoAcervo().setQuantidade(emprestimo.getItemDoAcervo().getQuantidade() + 1);
+        if (emprestimo.getItemDoAcervo().getQuantidade() > 0) {
+            emprestimo.getItemDoAcervo().setStatus(EnumStatusItem.DISPONIVEL);
         }
+        calcularMultasAtraso(emprestimo);
     }
 
     public boolean realizarReserva(Membro membro, ItemDoAcervo item) {
@@ -253,30 +249,22 @@ public class Biblioteca {
         return false;
     }
 
-   private void calcularMultasAtraso(Emprestimo emprestimo) {
-    
-    if (emprestimo.estaAtrasado() && emprestimo.getDevolucaoRealizada() != null) {
-        
-      
-        long diasAtraso = ChronoUnit.DAYS.between(emprestimo.getDataDevolucaoPrevista(), emprestimo.getDevolucaoRealizada());
-        
-       
-        if (diasAtraso > 0) {
-           
+    private void calcularMultasAtraso(Emprestimo emprestimo) {
+        if (emprestimo.estaAtrasado()) {
+            long diasAtraso = ChronoUnit.DAYS.between(emprestimo.getDataDevolucaoPrevista(), emprestimo.getDevolucaoRealizada());
             BigDecimal valorMulta = BigDecimal.valueOf(diasAtraso * 1.0);
             Multa novaMulta = new Multa(emprestimo.getMembro(), emprestimo, valorMulta);
             this.multas.add(novaMulta);
-            System.out.println("INFO: Multa de R$" + valorMulta + " gerada por atraso na devolução.");
         }
     }
-}
+
     public List<Multa> debitosPendentes(Membro membro) {
         return this.multas.stream()
                 .filter(multa -> multa.getMembro().equals(membro) && multa.getStatus() == StatusMulta.PENDENTE)
                 .collect(Collectors.toList());
     }
 
-    //Relatório
+    //==== Relatórios ====
     public List<Emprestimo> gerarRelatorioDeAtrasos() {
         return this.emprestimos.stream()
                 .filter(e -> e.getStatus() == StatusEmprestimo.ATIVO && e.estaAtrasado())
@@ -295,20 +283,20 @@ public class Biblioteca {
                 .collect(Collectors.toList());
     }
 
-    //Setores
+    //==== Setores ====
     public void adicionarSetor(Setor setor) {
         this.setores.add(setor);
     }
 
-   
+    //==== Caixa ====
     public void abrirCaixa(BigDecimal saldoInicial) {
-    if (this.caixaAtual == null || this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.FECHADO) {
-        this.caixaAtual = new Caixa(saldoInicial);
-        System.out.println("Caixa aberto com saldo inicial de R$" + saldoInicial);
-    } else {
-        System.out.println("O caixa do dia já está aberto.");
+        if (this.caixaAtual == null || this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.FECHADO) {
+            this.caixaAtual = new Caixa(saldoInicial);
+            System.out.println("Caixa aberto com saldo inicial de R$" + saldoInicial);
+        } else {
+            System.out.println("O caixa do dia já está aberto.");
+        }
     }
-}
 
     public void fecharCaixa() {
         if (this.caixaAtual != null && this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.ABERTO) {
@@ -316,7 +304,7 @@ public class Biblioteca {
         }
     }
 
-    //Funcionários
+    //==== Funcionários ====
     public void adicionarFuncionario(Funcionario funcionario) {
         this.funcionarios.add(funcionario);
     }
@@ -343,6 +331,12 @@ public class Biblioteca {
         }
         for (Funcionario f : funcionarios) {
             repositorioFuncionario.salvar(f);
+        }
+        for (Emprestimo e : emprestimos) {
+            repositorioEmprestimo.salvar(e);
+        }
+        for (Multa m : multas) {
+            repositorioMulta.salvar(m);
         }
         System.out.println("Todos os dados foram salvos em CSV!");
     }

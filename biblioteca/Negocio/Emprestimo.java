@@ -3,10 +3,7 @@ package biblioteca.Negocio;
 import biblioteca.Enum.StatusEmprestimo;
 import java.time.LocalDate;
 
-public class Emprestimo implements java.io.Serializable {
-    
-    // Adicionar um identificador único para o empréstimo
-    private final String id;
+public class Emprestimo {
     
     private Membro membro;
     private ItemDoAcervo itemDoAcervo;
@@ -15,18 +12,12 @@ public class Emprestimo implements java.io.Serializable {
     private LocalDate devolucaoRealizada;
     private StatusEmprestimo status;
 
-    public Emprestimo(String id, Membro membro, ItemDoAcervo itemDoAcervo, LocalDate dataEmprestimo) {
-        this.id = id;
+    public Emprestimo(Membro membro, ItemDoAcervo itemDoAcervo, LocalDate dataEmprestimo) {
         this.membro = membro;
         this.itemDoAcervo = itemDoAcervo;
         this.dataEmprestimo = dataEmprestimo;
         this.dataDevolucaoPrevista = dataEmprestimo.plusDays(14); // Exemplo de 14 dias
         this.status = StatusEmprestimo.ATIVO;
-    }
-
-    // Método para obter o ID do empréstimo
-    public String getId() {
-        return this.id;
     }
 
     public Membro getMembro() {
@@ -59,19 +50,5 @@ public class Emprestimo implements java.io.Serializable {
 
     public void setDevolucaoRealizada(LocalDate devolucaoRealizada) {
         this.devolucaoRealizada = devolucaoRealizada;
-    }
-
-    public boolean estaAtrasado() {
-        if (this.devolucaoRealizada != null) {
-            return this.devolucaoRealizada.isAfter(
-                this.dataDevolucaoPrevista
-            );
-        }
-        return LocalDate.now().isAfter(this.dataDevolucaoPrevista);
-    }
-
-    public void finalizarEmprestimo(LocalDate dataDevolucao) {
-        setDevolucaoRealizada(dataDevolucao);
-        setStatus(StatusEmprestimo.DEVOLVIDO);
     }
 }

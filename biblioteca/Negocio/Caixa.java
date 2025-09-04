@@ -4,28 +4,37 @@ import biblioteca.Enum.StatusCaixa;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public class Caixa implements java.io.Serializable {
+public class Caixa {
 
-    private final LocalDate dataAbertura;
-    private final BigDecimal saldoInicial;
-
+    private LocalDate dataAbertura;
     private LocalDate dataFechamento;
+    private BigDecimal saldoInicial;
     private BigDecimal saldoFinal;
-    private BigDecimal saldoAtual;
     private StatusCaixa status;
+    private BigDecimal saldoAtual;
 
-    public Caixa(BigDecimal saldoInicial) {
-        if (saldoInicial == null || saldoInicial.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("O saldo inicial não pode ser nulo ou negativo.");
-        }
-        this.dataAbertura = LocalDate.now();
-        this.saldoInicial = saldoInicial;
-        this.saldoAtual = saldoInicial;
-        this.status = StatusCaixa.ABERTO;
-        this.dataFechamento = null;
-        this.saldoFinal = null;
+    public Caixa() {
+        this.saldoInicial = BigDecimal.ZERO;
+        this.saldoFinal = BigDecimal.ZERO;
+        this.saldoAtual = BigDecimal.ZERO;
+        this.status = StatusCaixa.FECHADO;
     }
 
+    public void abrirCaixa(BigDecimal saldoInicial1) {
+        if (this.status == StatusCaixa.ABERTO) {
+            throw new IllegalStateException("O caixa já está aberto.");
+        }
+        this.dataAbertura = LocalDate.now();
+        this.saldoInicial = this.saldoAtual;
+        this.status = StatusCaixa.ABERTO;
+        System.out.println("Caixa aberto em " + this.dataAbertura);
+    }
+
+    /**
+     * Registra uma entrada de valor no caixa.
+     *
+     * @param valor O valor a ser adicionado.
+     */
     public void registrarEntrada(BigDecimal valor) {
         if (this.status != StatusCaixa.ABERTO) {
             throw new IllegalStateException("O caixa deve estar aberto para registrar entradas.");
@@ -65,9 +74,5 @@ public class Caixa implements java.io.Serializable {
 
     public StatusCaixa getStatus() {
         return status;
-    }
-
-    public BigDecimal getSaldoAtual() {
-        return saldoAtual;
     }
 }

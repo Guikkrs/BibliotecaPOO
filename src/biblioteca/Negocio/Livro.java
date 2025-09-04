@@ -7,8 +7,8 @@ public class Livro extends ItemDoAcervo implements java.io.Serializable {
     private int numeroDePaginas;
     private String isbn;
 
-    public Livro(String titulo, Autor autor, int ano, EnumSetor setor, int numeroDePaginas, String isbn) {
-        super(titulo, autor, ano, setor);
+    public Livro(String titulo, Autor autor, int ano, EnumSetor setor, int numeroDePaginas, String isbn, int quantidade) {
+        super(titulo, autor, ano, setor, quantidade);
         this.numeroDePaginas = numeroDePaginas;
         this.isbn = isbn;
     }
@@ -23,21 +23,19 @@ public class Livro extends ItemDoAcervo implements java.io.Serializable {
     
     @Override
     public String toString() {
-        return "Livro: " + getTitulo() + " | Autor: " + getAutor().getNome() + " | ISBN: " + this.isbn + " | Ano: " + getAno() + " | Setor: " + getSetor() + " | Páginas: " + this.numeroDePaginas;
-    }
-
-    Object getGenero() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return "Livro: " + getTitulo() + " | Autor: " + getAutor().getNome() + " | ISBN: " + this.isbn + " | Ano: " + getAno() + " | Setor: " + getSetor() + " | Páginas: " + this.numeroDePaginas + " | Quantidade: " + getQuantidade();
     }
 
     public String toCSV() {
         return String.join(";",
                 getTitulo(),
                 getAutor().getNome(),
+                getAutor().getNacionalidade(),
                 String.valueOf(getAno()),
                 getSetor().name(),
                 String.valueOf(numeroDePaginas),
-                isbn
+                isbn,
+                String.valueOf(getQuantidade())
         );
     }
 
@@ -48,7 +46,7 @@ public class Livro extends ItemDoAcervo implements java.io.Serializable {
         EnumSetor setor = EnumSetor.valueOf(parts[3]);
         int paginas = Integer.parseInt(parts[4]);
         String isbn = parts[5];
-        return new Livro(titulo, autor, ano, setor, paginas, isbn);
+        int quantidade = Integer.parseInt(parts[6]);
+        return new Livro(titulo, autor, ano, setor, paginas, isbn, quantidade);
     }
-
 }

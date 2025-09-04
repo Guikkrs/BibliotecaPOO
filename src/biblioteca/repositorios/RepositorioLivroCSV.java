@@ -61,15 +61,7 @@ public class RepositorioLivroCSV implements Repositorio<Livro> {
     private void salvarCSV() {
         try (PrintWriter pw = new PrintWriter(new FileWriter(arquivo))) {
             for (Livro l : livros) {
-                pw.println(
-                        l.getTitulo() + ";"
-                        + l.getAutor().getNome() + ";"
-                        + l.getAutor().getNacionalidade() + ";"
-                        + l.getAno() + ";"
-                        + l.getSetor() + ";"
-                        + l.getNumeroDePaginas() + ";"
-                        + l.getIsbn()
-                );
+                pw.println(l.toCSV());
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -86,7 +78,7 @@ public class RepositorioLivroCSV implements Repositorio<Livro> {
             String linha;
             while ((linha = reader.readLine()) != null) {
                 String[] dados = linha.split(";");
-                if (dados.length == 7) {
+                if (dados.length == 8) { // AGORA TEMOS 8 CAMPOS
                     String titulo = dados[0];
                     String nome = dados[1];
                     String nacionalidade = dados[2];
@@ -95,8 +87,9 @@ public class RepositorioLivroCSV implements Repositorio<Livro> {
                     EnumSetor setor = EnumSetor.valueOf(dados[4]);
                     int paginas = Integer.parseInt(dados[5]);
                     String isbn = dados[6];
+                    int quantidade = Integer.parseInt(dados[7]); // NOVO CAMPO: QUANTIDADE
 
-                    livros.add(new Livro(titulo, autor, ano, setor, paginas, isbn));
+                    livros.add(new Livro(titulo, autor, ano, setor, paginas, isbn, quantidade));
                 }
             }
         } catch (IOException e) {

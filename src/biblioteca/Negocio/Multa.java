@@ -7,15 +7,12 @@ import java.util.Objects;
 
 public class Multa implements java.io.Serializable {
 
-
-    private final Membro membro;
-    private final Emprestimo emprestimo;
-    private final BigDecimal valor;
-    private final LocalDate dataCriacao;
-
+    private Membro membro;
+    private Emprestimo emprestimo;
+    private BigDecimal valor;
     private StatusMulta status;
+    private LocalDate dataCriacao;
     private LocalDate dataPagamento;
-
 
     public Multa(Membro membro, Emprestimo emprestimo, BigDecimal valor) {
         if (membro == null || emprestimo == null || valor == null) {
@@ -32,14 +29,33 @@ public class Multa implements java.io.Serializable {
         this.dataPagamento = null;
     }
 
+    public Membro getMembro() {
+        return membro;
+    }
 
-    public Membro getMembro() { return membro; }
-    public Emprestimo getEmprestimo() { return emprestimo; }
-    public BigDecimal getValor() { return valor; }
-    public StatusMulta getStatus() { return status; }
-    public LocalDate getDataCriacao() { return dataCriacao; }
-    public LocalDate getDataPagamento() { return dataPagamento; }
+    public Emprestimo getEmprestimo() {
+        return emprestimo;
+    }
 
+    public BigDecimal getValor() {
+        return valor;
+    }
+
+    public StatusMulta getStatus() {
+        return status;
+    }
+
+    public void setStatus(StatusMulta status) {
+        this.status = status;
+    }
+
+    public LocalDate getDataCriacao() {
+        return dataCriacao;
+    }
+
+    public LocalDate getDataPagamento() {
+        return dataPagamento;
+    }
 
     public boolean registrarPagamento() {
         if (this.status == StatusMulta.PENDENTE) {
@@ -50,24 +66,16 @@ public class Multa implements java.io.Serializable {
         return false;
     }
 
-
-    @Override
-    public String toString() {
-        return "Multa{" +
-                "membro=" + membro.getNome() +
-                ", valor=" + valor +
-                ", status=" + status +
-                ", dataCriacao=" + dataCriacao +
-                ", dataPagamento=" + dataPagamento +
-                '}';
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         Multa multa = (Multa) o;
-        return Objects.equals(emprestimo, multa.emprestimo);
+        return emprestimo.equals(multa.emprestimo);
     }
 
     @Override

@@ -73,6 +73,7 @@ public class Main {
             System.out.println("[4] Buscar livro por palavra-chave");
             System.out.println("[5] Solicitar empréstimo");
             System.out.println("[6] Solicitar reserva");
+            System.out.println("[7] Ver Meus Empréstimos e Multas"); // Opção nova
             System.out.println("[0] Voltar");
             System.out.print("Escolha: ");
             int opcao = -1;
@@ -92,9 +93,37 @@ public class Main {
                 case 4 -> buscarLivroPalavraChave();
                 case 5 -> solicitarEmprestimo();
                 case 6 -> solicitarReserva();
+                case 7 -> verEmprestimosEMultas(); // Método novo
                 case 0 -> emMenuMembro = false;
                 default -> System.out.println("Opção inválida!");
             }
+        }
+    }
+
+    // Método para ver empréstimos e multas de um membro (novo)
+    private static void verEmprestimosEMultas() {
+        System.out.print("CPF do membro: ");
+        String cpf = sc.nextLine();
+        Membro membro = minhaBiblioteca.buscarMembroPorCPF(cpf);
+        if (membro == null) {
+            System.out.println("Membro não encontrado.");
+            return;
+        }
+
+        System.out.println("\n--- Empréstimos de " + membro.getNome() + " ---");
+        List<Emprestimo> emprestimos = minhaBiblioteca.buscarEmprestimosDoMembro(membro);
+        if (emprestimos.isEmpty()) {
+            System.out.println("Nenhum empréstimo registrado.");
+        } else {
+            emprestimos.forEach(e -> System.out.println(" - " + e.getItemDoAcervo().getTitulo() + " (Status: " + e.getStatus() + ")"));
+        }
+
+        System.out.println("\n--- Multas Pendentes de " + membro.getNome() + " ---");
+        List<Multa> multas = minhaBiblioteca.debitosPendentes(membro);
+        if (multas.isEmpty()) {
+            System.out.println("Nenhuma multa pendente.");
+        } else {
+            multas.forEach(m -> System.out.println(" - R$" + m.getValor() + " - Livro: " + m.getEmprestimo().getItemDoAcervo().getTitulo()));
         }
     }
 
@@ -176,7 +205,7 @@ public class Main {
             return;
         }
 
-        ItemDoAcervo item = itens.get(0); // Pega a primeira ocorrência do livro
+        ItemDoAcervo item = itens.get(0);
 
         try {
             boolean sucesso = minhaBiblioteca.realizarEmprestimo(membro, item);
@@ -332,10 +361,20 @@ public class Main {
         }
         System.out.print("ISBN: ");
         String isbn = sc.nextLine();
+        System.out.print("Quantidade de cópias: "); // Adicionada a entrada de quantidade
+        int quantidade;
+        try {
+            quantidade = sc.nextInt();
+            sc.nextLine();
+        } catch (java.util.InputMismatchException e) {
+            System.out.println("Quantidade inválida. Operação cancelada.");
+            sc.nextLine();
+            return;
+        }
 
         Autor autor = new Autor(nomeAutor, nacionalidadeAutor);
         EnumSetor setor = EnumSetor.valueOf(setorStr.toUpperCase());
-        Livro novoLivro = new Livro(titulo, autor, ano, setor, paginas, isbn);
+        Livro novoLivro = new Livro(titulo, autor, ano, setor, paginas, isbn, quantidade);
         minhaBiblioteca.cadastrarLivro(novoLivro);
         minhaBiblioteca.salvar();
     }
@@ -438,7 +477,7 @@ public class Main {
             }
         }
     }
-    
+
     private static void adicionarFuncionario() {
         System.out.print("Nome: ");
         String nome = sc.nextLine();
@@ -462,7 +501,7 @@ public class Main {
         String senha = sc.nextLine();
         System.out.print("Permissão (ADMINISTRADOR, GERENTE, USUARIO_COMUM): ");
         String permissaoStr = sc.nextLine();
-        
+
         try {
             Permissao permissao = Permissao.valueOf(permissaoStr.toUpperCase());
             Funcionario novoFuncionario = new Funcionario(nome, cpf, telefone, idade, login, senha, permissao);
@@ -505,7 +544,7 @@ public class Main {
             System.out.println("Erro ao remover funcionário.");
         }
     }
-    
+
     private static void editarMembro() {
         System.out.print("CPF do membro a ser editado: ");
         String cpf = sc.nextLine();
@@ -514,7 +553,7 @@ public class Main {
             System.out.println("Membro não encontrado.");
             return;
         }
-        
+
         System.out.println("Editando membro: " + membro.getNome());
         System.out.println("Digite os novos dados (deixe em branco para manter o atual).");
 
@@ -539,7 +578,7 @@ public class Main {
                 System.out.println("Idade inválida. Idade não alterada.");
             }
         }
-        
+
         minhaBiblioteca.salvar();
         System.out.println("Membro editado com sucesso!");
     }
@@ -552,7 +591,7 @@ public class Main {
             System.out.println("Funcionário não encontrado.");
             return;
         }
-        
+
         System.out.println("Editando funcionário: " + funcionario.getNome());
         System.out.println("Digite os novos dados (deixe em branco para manter o atual).");
 
@@ -593,7 +632,7 @@ public class Main {
                 System.out.println("Permissão inválida. Permissão não alterada.");
             }
         }
-        
+
         minhaBiblioteca.salvar();
         System.out.println("Funcionário editado com sucesso!");
     }
@@ -637,7 +676,7 @@ public class Main {
         System.out.print("Título do livro a ser devolvido: ");
         String titulo = sc.nextLine();
         Optional<Emprestimo> emprestimoOpt = minhaBiblioteca.buscarEmprestimo(membro, titulo);
-        
+
         if (emprestimoOpt.isPresent()) {
             minhaBiblioteca.realizarDevolucao(emprestimoOpt.get());
             minhaBiblioteca.salvar();
@@ -694,21 +733,19 @@ public class Main {
     }
 
     private static void abrirCaixa() {
-    System.out.print("Digite o saldo inicial (ex: 100,50): ");
-    try {
-        BigDecimal saldoInicial = sc.nextBigDecimal();
-        sc.nextLine();
-
-       
-        minhaBiblioteca.abrirCaixa(saldoInicial);
-
-    } catch (java.util.InputMismatchException e) {
-        System.out.println("ERRO: Valor inválido. Por favor, use a vírgula como separador decimal.");
-        sc.nextLine();
-    } catch (IllegalArgumentException | IllegalStateException e) {
-        System.out.println("ERRO: " + e.getMessage());
+        System.out.print("Digite o saldo inicial (ex: 100,50): ");
+        try {
+            BigDecimal saldoInicial = sc.nextBigDecimal();
+            sc.nextLine();
+            minhaBiblioteca.abrirCaixa(saldoInicial);
+            minhaBiblioteca.salvar();
+        } catch (java.util.InputMismatchException e) {
+            System.out.println("ERRO: Valor inválido. Por favor, use a vírgula como separador decimal.");
+            sc.nextLine();
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.out.println("ERRO: " + e.getMessage());
+        }
     }
-}
 
     private static void receberMulta() {
         System.out.print("CPF do membro que irá pagar a multa: ");
@@ -736,6 +773,7 @@ public class Main {
         if (opcao > 0 && opcao <= debitos.size()) {
             Multa multa = debitos.get(opcao - 1);
             minhaBiblioteca.pagarMulta(multa);
+            minhaBiblioteca.salvar();
             System.out.println("Multa de R$" + multa.getValor() + " paga com sucesso.");
         } else {
             System.out.println("Opção inválida.");
@@ -744,8 +782,9 @@ public class Main {
 
     private static void fecharCaixa() {
         minhaBiblioteca.fecharCaixa();
+        minhaBiblioteca.salvar();
     }
-    
+
     private static void menuGerarRelatorios() {
         boolean emMenuRelatorios = true;
         while (emMenuRelatorios) {
