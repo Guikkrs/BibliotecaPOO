@@ -1,11 +1,13 @@
 package biblioteca.UI;
 
-import biblioteca.Enum.EnumSetor;
-import biblioteca.Enum.Permissao;
-import biblioteca.Excecoes.ItemNaoEncontradoException;
-import biblioteca.Excecoes.MembroComDebitoException;
-import biblioteca.Negocio.*;
+import biblioteca.negocios.*;
+import biblioteca.negocios.enums.EnumSetor;
+import biblioteca.negocios.enums.Permissao;
+import biblioteca.negocios.excecoes.ItemNaoEncontradoException;
+import biblioteca.negocios.excecoes.MembroComDebitoException;
 import biblioteca.dados.RepositorioFuncionarioCSV;
+import biblioteca.fachada.Fachada;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +17,7 @@ import java.util.Scanner;
 public class Main {
 
     private static Scanner sc = new Scanner(System.in);
-    private static Biblioteca minhaBiblioteca = Biblioteca.getInstance();
+    private static Fachada minhaBiblioteca = Fachada.getInstance();
     private static RepositorioFuncionarioCSV repositorioFuncionario = new RepositorioFuncionarioCSV();
 
     public static void main(String[] args) {

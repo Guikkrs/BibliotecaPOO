@@ -1,4 +1,4 @@
-package biblioteca.Enum;
+package biblioteca.negocios.enums;
 
 public enum Permissao implements java.io.Serializable {
     ADMINISTRADOR,

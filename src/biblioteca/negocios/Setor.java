@@ -1,4 +1,4 @@
-package biblioteca.Negocio;
+package biblioteca.negocios;
 
 public class Setor implements java.io.Serializable {
     private String nome;

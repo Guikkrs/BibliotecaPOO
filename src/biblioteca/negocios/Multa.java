@@ -1,9 +1,10 @@
-package biblioteca.Negocio;
+package biblioteca.negocios;
 
-import biblioteca.Enum.StatusMulta;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
+
+import biblioteca.negocios.enums.StatusMulta;
 
 public class Multa implements java.io.Serializable {
 

@@ -1,6 +1,6 @@
-package biblioteca.Negocio;
+package biblioteca.negocios;
 
-import biblioteca.Enum.Permissao;
+import biblioteca.negocios.enums.Permissao;
 
 public class Membro extends Pessoa implements java.io.Serializable {
 

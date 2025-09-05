@@ -1,6 +1,6 @@
-package biblioteca.Negocio;
+package biblioteca.negocios;
 
-import biblioteca.Enum.EnumSetor;
+import biblioteca.negocios.enums.EnumSetor;
 
 public class Livro extends ItemDoAcervo implements java.io.Serializable {
     

@@ -1,9 +1,9 @@
-package biblioteca.Negocio;
-
-import biblioteca.Enum.StatusReserva;
+package biblioteca.negocios;
 
 import java.time.LocalDate;
 import java.util.Objects;
+
+import biblioteca.negocios.enums.StatusReserva;
 
 public class Reserva implements java.io.Serializable {
 

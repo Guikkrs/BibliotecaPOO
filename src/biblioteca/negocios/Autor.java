@@ -1,4 +1,4 @@
-package biblioteca.Negocio;
+package biblioteca.negocios;
 
 public class Autor implements java.io.Serializable {
 

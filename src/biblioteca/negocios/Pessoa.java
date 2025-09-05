@@ -1,4 +1,4 @@
-package biblioteca.Negocio;
+package biblioteca.negocios;
 
 import java.util.Objects;
 

@@ -1,7 +1,7 @@
-package biblioteca.Negocio;
+package biblioteca.negocios;
 
-import biblioteca.Enum.EnumSetor;
-import biblioteca.Enum.EnumStatusItem;
+import biblioteca.negocios.enums.EnumSetor;
+import biblioteca.negocios.enums.EnumStatusItem;
 
 public abstract class ItemDoAcervo implements java.io.Serializable {
 

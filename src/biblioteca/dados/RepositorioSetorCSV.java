@@ -1,6 +1,6 @@
 package biblioteca.dados;
 
-import biblioteca.Negocio.Setor;
+import biblioteca.negocios.Setor;
 import java.io.*;
 import java.util.*;
 

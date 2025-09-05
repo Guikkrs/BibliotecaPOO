@@ -2,8 +2,9 @@ package biblioteca.dados;
 
 import java.io.*;
 import java.util.*;
-import biblioteca.Negocio.Membro;
-import biblioteca.Enum.Permissao;
+
+import biblioteca.negocios.Membro;
+import biblioteca.negocios.enums.Permissao;
 
 public class RepositorioMembroCSV implements Repositorio<Membro> {
 

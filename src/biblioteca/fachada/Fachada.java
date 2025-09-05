@@ -1,12 +1,22 @@
-package biblioteca.Negocio;
+package biblioteca.fachada;
 
-import biblioteca.Enum.EnumStatusItem;
-import biblioteca.Enum.Permissao;
-import biblioteca.Enum.StatusEmprestimo;
-import biblioteca.Enum.StatusMulta;
-import biblioteca.Enum.StatusReserva;
-import biblioteca.Excecoes.ItemNaoEncontradoException;
 import biblioteca.dados.*;
+import biblioteca.negocios.Caixa;
+import biblioteca.negocios.Emprestimo;
+import biblioteca.negocios.Funcionario;
+import biblioteca.negocios.ItemDoAcervo;
+import biblioteca.negocios.Livro;
+import biblioteca.negocios.Membro;
+import biblioteca.negocios.Multa;
+import biblioteca.negocios.Reserva;
+import biblioteca.negocios.Setor;
+import biblioteca.negocios.enums.EnumStatusItem;
+import biblioteca.negocios.enums.Permissao;
+import biblioteca.negocios.enums.StatusEmprestimo;
+import biblioteca.negocios.enums.StatusMulta;
+import biblioteca.negocios.enums.StatusReserva;
+import biblioteca.negocios.excecoes.ItemNaoEncontradoException;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -17,7 +27,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class Biblioteca {
+public class Fachada {
 
     private Repositorio<Livro> repositorioLivro;
     private Repositorio<Membro> repositorioMembro;
@@ -35,9 +45,9 @@ public class Biblioteca {
     private Caixa caixaAtual;
     private Funcionario funcionarioLogado;
 
-    private static Biblioteca instancia;
+    private static Fachada instancia;
 
-    private Biblioteca() {
+    private Fachada() {
         this.repositorioLivro = new RepositorioLivroCSV();
         this.repositorioMembro = new RepositorioMembroCSV();
         this.repositorioFuncionario = new RepositorioFuncionarioCSV();
@@ -53,9 +63,9 @@ public class Biblioteca {
         this.setores = new ArrayList<>();
     }
 
-    public static Biblioteca getInstance() {
+    public static Fachada getInstance() {
         if (instancia == null) {
-            instancia = new Biblioteca();
+            instancia = new Fachada();
         }
         return instancia;
     }
@@ -105,7 +115,7 @@ public class Biblioteca {
     public void pagarMulta(Multa multa) {
         // Usa o método registrarPagamento da classe Multa, que já atualiza o status e a data
         if (multa.registrarPagamento()) {
-            if (this.caixaAtual != null && this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.ABERTO) {
+            if (this.caixaAtual != null && this.caixaAtual.getStatus() == biblioteca.negocios.enums.StatusCaixa.ABERTO) {
                 this.caixaAtual.registrarEntrada(multa.getValor());
             } else {
                 System.out.println("Caixa fechado! Pagamento não registrado no caixa.");
@@ -211,9 +221,9 @@ public class Biblioteca {
     }
 
     //==== Empréstimos e Reservas ====
-    public boolean realizarEmprestimo(Membro membro, ItemDoAcervo item) throws biblioteca.Excecoes.MembroComDebitoException {
+    public boolean realizarEmprestimo(Membro membro, ItemDoAcervo item) throws biblioteca.negocios.excecoes.MembroComDebitoException {
         if (!debitosPendentes(membro).isEmpty()) {
-            throw new biblioteca.Excecoes.MembroComDebitoException("O membro possui debitos pendentes e nao pode realizar emprestimos.");
+            throw new biblioteca.negocios.excecoes.MembroComDebitoException("O membro possui debitos pendentes e nao pode realizar emprestimos.");
         }
 
         if (item.verificarDisponibilidade() && item.getStatus() == EnumStatusItem.DISPONIVEL) {
@@ -289,7 +299,7 @@ public class Biblioteca {
 
     //==== Caixa ====
     public void abrirCaixa(BigDecimal saldoInicial) {
-        if (this.caixaAtual == null || this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.FECHADO) {
+        if (this.caixaAtual == null || this.caixaAtual.getStatus() == biblioteca.negocios.enums.StatusCaixa.FECHADO) {
             this.caixaAtual = new Caixa(saldoInicial);
             System.out.println("Caixa aberto com saldo inicial de R$" + saldoInicial);
         } else {
@@ -298,7 +308,7 @@ public class Biblioteca {
     }
 
     public void fecharCaixa() {
-        if (this.caixaAtual != null && this.caixaAtual.getStatus() == biblioteca.Enum.StatusCaixa.ABERTO) {
+        if (this.caixaAtual != null && this.caixaAtual.getStatus() == biblioteca.negocios.enums.StatusCaixa.ABERTO) {
             this.caixaAtual.fecharCaixa();
         }
     }

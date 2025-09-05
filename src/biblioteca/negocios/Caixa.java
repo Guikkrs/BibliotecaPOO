@@ -1,8 +1,9 @@
-package biblioteca.Negocio;
+package biblioteca.negocios;
 
-import biblioteca.Enum.StatusCaixa;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
+import biblioteca.negocios.enums.StatusCaixa;
 
 public class Caixa implements java.io.Serializable {
 

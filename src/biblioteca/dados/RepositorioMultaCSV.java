@@ -1,8 +1,8 @@
 package biblioteca.dados;
 
-import biblioteca.Negocio.Emprestimo;
-import biblioteca.Negocio.Membro;
-import biblioteca.Negocio.Multa;
+import biblioteca.negocios.Emprestimo;
+import biblioteca.negocios.Membro;
+import biblioteca.negocios.Multa;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;

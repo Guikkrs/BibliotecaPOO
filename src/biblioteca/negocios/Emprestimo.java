@@ -1,7 +1,8 @@
-package biblioteca.Negocio;
+package biblioteca.negocios;
 
-import biblioteca.Enum.StatusEmprestimo;
 import java.time.LocalDate;
+
+import biblioteca.negocios.enums.StatusEmprestimo;
 
 public class Emprestimo implements java.io.Serializable {
     

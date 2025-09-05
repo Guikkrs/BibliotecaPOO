@@ -1,6 +1,6 @@
 package biblioteca.dados;
 
-import biblioteca.Negocio.Autor;
+import biblioteca.negocios.Autor;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;

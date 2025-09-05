@@ -1,8 +1,9 @@
 package biblioteca.dados;
 
-import biblioteca.Enum.EnumSetor;
-import biblioteca.Negocio.Autor;
-import biblioteca.Negocio.Livro;
+import biblioteca.negocios.Autor;
+import biblioteca.negocios.Livro;
+import biblioteca.negocios.enums.EnumSetor;
+
 import java.io.*;
 import java.util.*;
 

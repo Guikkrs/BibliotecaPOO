@@ -1,4 +1,4 @@
-package biblioteca.Excecoes;
+package biblioteca.negocios.excecoes;
 
 public class MembroComDebitoException extends Exception {
 

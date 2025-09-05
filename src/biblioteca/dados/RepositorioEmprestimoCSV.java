@@ -1,10 +1,10 @@
 package biblioteca.dados;
 
-import biblioteca.Negocio.Emprestimo;
-import biblioteca.Negocio.ItemDoAcervo;
-import biblioteca.Negocio.Membro;
-import biblioteca.Negocio.Livro;
-import biblioteca.Enum.StatusEmprestimo;
+import biblioteca.negocios.Emprestimo;
+import biblioteca.negocios.ItemDoAcervo;
+import biblioteca.negocios.Membro;
+import biblioteca.negocios.enums.StatusEmprestimo;
+import biblioteca.negocios.Livro;
 
 import java.io.*;
 import java.time.LocalDate;
