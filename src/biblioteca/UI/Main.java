@@ -5,7 +5,7 @@ import biblioteca.Enum.Permissao;
 import biblioteca.Excecoes.ItemNaoEncontradoException;
 import biblioteca.Excecoes.MembroComDebitoException;
 import biblioteca.Negocio.*;
-import biblioteca.repositorios.RepositorioFuncionarioCSV;
+import biblioteca.dados.RepositorioFuncionarioCSV;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;

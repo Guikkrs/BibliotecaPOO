@@ -1,4 +1,4 @@
-package biblioteca.repositorios;
+package biblioteca.dados;
 
 import biblioteca.Negocio.Emprestimo;
 import biblioteca.Negocio.ItemDoAcervo;

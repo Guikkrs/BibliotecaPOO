@@ -1,4 +1,4 @@
-package biblioteca.repositorios;
+package biblioteca.dados;
 
 import biblioteca.Enum.EnumSetor;
 import biblioteca.Negocio.Autor;

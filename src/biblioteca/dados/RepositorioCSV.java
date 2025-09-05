@@ -1,4 +1,4 @@
-package biblioteca.repositorios;
+package biblioteca.dados;
 
 import java.io.*;
 import java.util.ArrayList;
