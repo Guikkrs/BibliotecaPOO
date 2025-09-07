@@ -1,352 +1,216 @@
 package biblioteca.fachada;
 
-import biblioteca.dados.*;
-import biblioteca.negocios.Caixa;
-import biblioteca.negocios.Emprestimo;
-import biblioteca.negocios.Funcionario;
-import biblioteca.negocios.ItemDoAcervo;
-import biblioteca.negocios.Livro;
-import biblioteca.negocios.Membro;
-import biblioteca.negocios.Multa;
-import biblioteca.negocios.Reserva;
-import biblioteca.negocios.Setor;
-import biblioteca.negocios.enums.EnumStatusItem;
+import biblioteca.dados.persistencia.*;
+import biblioteca.dados.repositorio.*;
+import biblioteca.negocios.entidade.*;
 import biblioteca.negocios.enums.Permissao;
-import biblioteca.negocios.enums.StatusEmprestimo;
-import biblioteca.negocios.enums.StatusMulta;
-import biblioteca.negocios.enums.StatusReserva;
-import biblioteca.negocios.excecoes.ItemNaoEncontradoException;
+import biblioteca.negocios.excecoes.acervo.ItemComPendenciasException;
+import biblioteca.negocios.excecoes.acervo.ItemNaoDisponivelException;
+import biblioteca.negocios.excecoes.caixa.CaixaAbertoException;
+import biblioteca.negocios.excecoes.caixa.CaixaFechadoException;
+import biblioteca.negocios.excecoes.emprestimo.EmprestimoNaoEncontradoException;
+import biblioteca.negocios.excecoes.emprestimo.LimiteDeEmprestimosAtingidoException;
+import biblioteca.negocios.excecoes.emprestimo.MembroComDebitoException;
+import biblioteca.negocios.excecoes.itemDoAcervo.ItemNaoEncontradoException;
+import biblioteca.negocios.excecoes.login.CredenciaisInvalidasException;
+import biblioteca.negocios.excecoes.login.PermissaoInsuficienteException;
+import biblioteca.negocios.excecoes.pessoa.CpfJaExistenteException;
+import biblioteca.negocios.excecoes.pessoa.MembroComPendenciasException;
+import biblioteca.negocios.excecoes.pessoa.PessoaNaoEncontradaException;
+import biblioteca.negocios.excecoes.reserva.ItemDisponivelException;
+import biblioteca.negocios.excecoes.reserva.ReservaDuplicadaException;
+import biblioteca.negocios.excecoes.validacao.ValidacaoException;
+import biblioteca.negocios.servico.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class Fachada {
 
-    private Repositorio<Livro> repositorioLivro;
-    private Repositorio<Membro> repositorioMembro;
-    private Repositorio<Funcionario> repositorioFuncionario;
-    private Repositorio<Emprestimo> repositorioEmprestimo; // NOVO
-    private Repositorio<Multa> repositorioMulta;         // NOVO
-
-    private List<Membro> membros;
-    private List<Funcionario> funcionarios;
-    private List<ItemDoAcervo> acervo;
-    private List<Emprestimo> emprestimos;
-    private List<Reserva> reservas;
-    private List<Setor> setores;
-    private List<Multa> multas;
-    private Caixa caixaAtual;
-    private Funcionario funcionarioLogado;
-
     private static Fachada instancia;
 
-    private Fachada() {
-        this.repositorioLivro = new RepositorioLivroCSV();
-        this.repositorioMembro = new RepositorioMembroCSV();
-        this.repositorioFuncionario = new RepositorioFuncionarioCSV();
-        this.repositorioEmprestimo = new RepositorioEmprestimoCSV(repositorioMembro, repositorioLivro); // NOVO
-        this.repositorioMulta = new RepositorioMultaCSV(repositorioMembro, repositorioEmprestimo); // NOVO
+    // ... (declaração dos serviços) ...
+    private final FuncionarioServico funcionarioServico;
+    private final MembroServico membroServico;
+    private final AcervoServico acervoServico;
+    private final EmprestimoServico emprestimoServico;
+    private final CaixaServico caixaServico;
+    private final ReservaServico reservaServico;
+    private final RelatorioServico relatorioServico;
 
-        this.membros = new ArrayList<>(repositorioMembro.carregar());
-        this.funcionarios = new ArrayList<>(repositorioFuncionario.carregar());
-        this.acervo = new ArrayList<>(repositorioLivro.carregar());
-        this.emprestimos = new ArrayList<>(repositorioEmprestimo.carregar()); // Carrega os empréstimos
-        this.multas = new ArrayList<>(repositorioMulta.carregar()); // Carrega as multas
-        this.reservas = new ArrayList<>();
-        this.setores = new ArrayList<>();
+    private Fachada() {
+        // ... (inicialização dos repositórios e serviços) ...
+        IRepositorioFuncionario repositorioFuncionario = new RepositorioFuncionarioPersistencia();
+        IRepositorioMembro repositorioMembro = new RepositorioMembroPersistencia();
+        IRepositorioItemDoAcervo repositorioAcervo = new RepositorioItemDoAcervoPersistencia();
+        IRepositorioEmprestimo repositorioEmprestimo = new RepositorioEmprestimoPersistencia();
+        IRepositorioMulta repositorioMulta = new RepositorioMultaPersistencia();
+        IRepositorioCaixa repositorioCaixa = new RepositorioCaixaPersistencia();
+        IRepositorioReserva repositorioReserva = new RepositorioReservaPersistencia();
+
+        this.funcionarioServico = new FuncionarioServico(repositorioFuncionario);
+        this.membroServico = new MembroServico(repositorioMembro, repositorioEmprestimo);
+        this.acervoServico = new AcervoServico(repositorioAcervo, repositorioEmprestimo);
+        this.caixaServico = new CaixaServico(repositorioCaixa, repositorioMulta);
+        this.emprestimoServico = new EmprestimoServico(repositorioEmprestimo, repositorioMulta, repositorioAcervo);
+        this.reservaServico = new ReservaServico(repositorioReserva, repositorioAcervo);
+        this.relatorioServico = new RelatorioServico(repositorioEmprestimo, repositorioReserva);
     }
 
-    public static Fachada getInstance() {
+    public static synchronized Fachada getInstance() {
         if (instancia == null) {
             instancia = new Fachada();
         }
         return instancia;
     }
 
-    // Método adicionado para listar os livros
-    public Repositorio<Livro> getRepositorioLivro() {
-        return this.repositorioLivro;
-    }
-
-    // Métodos para remover entidades
-    public boolean removerMembro(Membro membro) {
-        int index = this.membros.indexOf(membro);
-        if (index >= 0) {
-            this.membros.remove(index);
-            repositorioMembro.remover(index);
-            return true;
-        }
-        return false;
-    }
-
-    public boolean removerFuncionario(Funcionario funcionario) {
-        int index = this.funcionarios.indexOf(funcionario);
-        if (index >= 0) {
-            this.funcionarios.remove(index);
-            repositorioFuncionario.remover(index);
-            return true;
-        }
-        return false;
-    }
-
-    // Método para buscar funcionário
-    public Funcionario buscarFuncionarioPorCPF(String cpf) {
-        return this.funcionarios.stream()
-                .filter(f -> f.getCpf().equals(cpf))
-                .findFirst()
-                .orElse(null);
-    }
-
-    // Método para buscar um emprestimo
-    public Optional<Emprestimo> buscarEmprestimo(Membro membro, String tituloLivro) {
-        return this.emprestimos.stream()
-                .filter(e -> e.getMembro().equals(membro) && e.getItemDoAcervo().getTitulo().equalsIgnoreCase(tituloLivro))
-                .findFirst();
-    }
-
-    // Método para pagar multa
-    public void pagarMulta(Multa multa) {
-        // Usa o método registrarPagamento da classe Multa, que já atualiza o status e a data
-        if (multa.registrarPagamento()) {
-            if (this.caixaAtual != null && this.caixaAtual.getStatus() == biblioteca.negocios.enums.StatusCaixa.ABERTO) {
-                this.caixaAtual.registrarEntrada(multa.getValor());
-            } else {
-                System.out.println("Caixa fechado! Pagamento não registrado no caixa.");
-            }
-        }
-    }
-
-    // Método para buscar emprestimos de um membro
-    public List<Emprestimo> buscarEmprestimosDoMembro(Membro membro) {
-        return this.emprestimos.stream()
-                .filter(e -> e.getMembro().equals(membro))
-                .collect(Collectors.toList());
-    }
-
-    //==== Login/Logout ====
-    public void login(Funcionario f) {
-        this.funcionarioLogado = f;
-        System.out.println("Funcionário logado: " + f.getLogin());
+    // ... (métodos de login/sessão) ...
+    public void login(String login, String senha) throws CredenciaisInvalidasException {
+        funcionarioServico.login(login, senha);
     }
 
     public void logout() {
-        if (funcionarioLogado != null) {
-            System.out.println("Funcionário " + funcionarioLogado.getLogin() + " deslogado.");
-            this.funcionarioLogado = null;
-        }
+        funcionarioServico.logout();
     }
 
     public Funcionario getFuncionarioLogado() {
-        return this.funcionarioLogado;
+        return funcionarioServico.getFuncionarioLogado();
     }
 
-    // ===== Cadastro e busca de itens =====
-    public void cadastrarLivro(Livro livro) {
-        if (funcionarioLogado == null) {
-            System.out.println("Nenhum funcionário logado. Operação não permitida.");
-            return;
-        }
-        if (funcionarioLogado.getPermissao() != Permissao.ADMINISTRADOR) {
-            System.out.println("Permissão insuficiente para cadastrar livros.");
-            return;
-        }
-
-        this.acervo.add(livro);
-        repositorioLivro.salvar(livro);
-        System.out.println("Livro cadastrado: " + livro.getTitulo());
+    public void loginMembro(String login, String senha) throws CredenciaisInvalidasException {
+        membroServico.login(login, senha);
     }
 
-    public void adicionarMaisCopias(ItemDoAcervo item, int quantidade) throws ItemNaoEncontradoException {
-        ItemDoAcervo itemNoAcervo = this.acervo.stream()
-                .filter(i -> i.getTitulo().equals(item.getTitulo()))
-                .findFirst()
-                .orElseThrow(() -> new ItemNaoEncontradoException("Item não encontrado no acervo."));
-
-        itemNoAcervo.setQuantidade(itemNoAcervo.getQuantidade() + quantidade);
+    public void logoutMembro() {
+        membroServico.logout();
     }
 
-    public boolean removerItem(ItemDoAcervo item) {
-        if (this.acervo.remove(item)) {
-            if (item instanceof Livro) {
-                repositorioLivro.remover(repositorioLivro.carregar().indexOf(item));
-            }
-            return true;
-        }
-        return false;
+    public Membro getMembroLogado() {
+        return membroServico.getMembroLogado();
     }
 
-    public void adicionarItem(ItemDoAcervo item, int quantidade) {
-        item.setQuantidade(quantidade);
-        this.acervo.add(item);
+    // ========== SERVIÇO DE ACERVO ==========
+    public void cadastrarLivro(Livro livro) throws ValidacaoException, PermissaoInsuficienteException {
+        funcionarioServico.validarPermissao(Permissao.USUARIO_COMUM);
+        acervoServico.cadastrarLivro(livro);
     }
 
-    public List<ItemDoAcervo> buscarItemPorTitulo(String titulo) {
-        return this.acervo.stream()
-                .filter(item -> item.getTitulo().equalsIgnoreCase(titulo))
-                .collect(Collectors.toList());
+    // CORREÇÃO: Adicionada ValidacaoException
+    public void adicionarCopias(int idItem, int quantidade) throws ItemNaoEncontradoException, ValidacaoException, PermissaoInsuficienteException {
+        funcionarioServico.validarPermissao(Permissao.GERENTE);
+        acervoServico.adicionarCopias(idItem, quantidade);
+    }
+
+    // CORREÇÃO: Adicionada ValidacaoException
+    public void removerItem(int idItem) throws ItemNaoEncontradoException, ItemComPendenciasException, PermissaoInsuficienteException, ValidacaoException {
+        funcionarioServico.validarPermissao(Permissao.ADMINISTRADOR);
+        acervoServico.removerItem(idItem);
+    }
+
+    // ... (outros métodos do acervo) ...
+    public ItemDoAcervo buscarItemPorTitulo(String titulo) {
+        return acervoServico.buscarItemPorTitulo(titulo);
     }
 
     public List<Livro> buscarLivroPorAutor(String nomeAutor) {
-        return this.acervo.stream()
-                .filter(item -> item instanceof Livro)
-                .map(item -> (Livro) item)
-                .filter(livro -> livro.getAutor().getNome().equalsIgnoreCase(nomeAutor))
-                .collect(Collectors.toList());
+        return acervoServico.buscarLivroPorAutor(nomeAutor);
     }
 
-    public List<ItemDoAcervo> buscarItemPorPalavraChave(String palavraChave) {
-        String palavraChaveLowerCase = palavraChave.toLowerCase();
-        return this.acervo.stream()
-                .filter(item -> item.getTitulo().toLowerCase().contains(palavraChaveLowerCase))
-                .collect(Collectors.toList());
+    public List<Livro> listarTodosLivros() {
+        return acervoServico.listarTodosLivros();
     }
 
-    //=== Membros ===
-    public void adicionarMembro(Membro membro) {
-        this.membros.add(membro);
+    // ========== SERVIÇO DE PESSOAS (MEMBRO E FUNCIONÁRIO) ==========
+    public void cadastrarMembro(Membro membro) throws CpfJaExistenteException, ValidacaoException {
+        membroServico.cadastrarMembro(membro);
     }
 
-    public Membro buscarMembroPorCPF(String cpf) {
-        return this.membros.stream()
-                .filter(membro -> membro.getCpf().equals(cpf))
-                .findFirst()
-                .orElse(null);
+    // CORREÇÃO: Adicionada ValidacaoException
+    public void cadastrarFuncionario(Funcionario funcionario) throws CpfJaExistenteException, ValidacaoException, PermissaoInsuficienteException {
+        funcionarioServico.validarPermissao(Permissao.ADMINISTRADOR);
+        funcionarioServico.cadastrarFuncionario(funcionario);
     }
 
-    //==== Empréstimos e Reservas ====
-    public boolean realizarEmprestimo(Membro membro, ItemDoAcervo item) throws biblioteca.negocios.excecoes.MembroComDebitoException {
-        if (!debitosPendentes(membro).isEmpty()) {
-            throw new biblioteca.negocios.excecoes.MembroComDebitoException("O membro possui debitos pendentes e nao pode realizar emprestimos.");
-        }
+    // ... (outros métodos de pessoas) ...
+    public Membro buscarMembroPorCpf(String cpf) {
+        return membroServico.buscarMembroPorCpf(cpf);
+    }
 
-        if (item.verificarDisponibilidade() && item.getStatus() == EnumStatusItem.DISPONIVEL) {
-            String idEmprestimo = UUID.randomUUID().toString();
-            Emprestimo novoEmprestimo = new Emprestimo(idEmprestimo, membro, item, LocalDate.now());
-            this.emprestimos.add(novoEmprestimo);
-            item.setQuantidade(item.getQuantidade() - 1);
-            if (item.getQuantidade() == 0) {
-                item.setStatus(EnumStatusItem.EMPRESTADO);
-            }
-            return true;
-        }
-        return false;
+    public void removerMembro(String cpf) throws PessoaNaoEncontradaException, MembroComPendenciasException {
+        membroServico.removerMembro(cpf);
+    }
+
+    public List<Membro> listarTodosMembros() {
+        return membroServico.listarTodosMembros();
+    }
+
+    public List<Funcionario> listarTodosFuncionarios() {
+        return funcionarioServico.listarTodosFuncionarios();
+    }
+
+    // ... (outros métodos de empréstimo e reserva) ...
+    public void realizarEmprestimo(Membro membro, ItemDoAcervo item) throws MembroComDebitoException, ItemNaoDisponivelException, LimiteDeEmprestimosAtingidoException {
+        emprestimoServico.realizarEmprestimo(membro, item);
     }
 
     public void realizarDevolucao(Emprestimo emprestimo) {
-        emprestimo.finalizarEmprestimo(LocalDate.now());
-        emprestimo.getItemDoAcervo().setQuantidade(emprestimo.getItemDoAcervo().getQuantidade() + 1);
-        if (emprestimo.getItemDoAcervo().getQuantidade() > 0) {
-            emprestimo.getItemDoAcervo().setStatus(EnumStatusItem.DISPONIVEL);
-        }
-        calcularMultasAtraso(emprestimo);
-    }
-
-    public boolean realizarReserva(Membro membro, ItemDoAcervo item) {
-        if (item.getStatus() != EnumStatusItem.DISPONIVEL) {
-            Reserva novaReserva = new Reserva(membro, item, LocalDate.now());
-            this.reservas.add(novaReserva);
-            item.setStatus(EnumStatusItem.RESERVADO);
-            return true;
-        }
-        return false;
-    }
-
-    private void calcularMultasAtraso(Emprestimo emprestimo) {
-        if (emprestimo.estaAtrasado()) {
-            long diasAtraso = ChronoUnit.DAYS.between(emprestimo.getDataDevolucaoPrevista(), emprestimo.getDevolucaoRealizada());
-            BigDecimal valorMulta = BigDecimal.valueOf(diasAtraso * 1.0);
-            Multa novaMulta = new Multa(emprestimo.getMembro(), emprestimo, valorMulta);
-            this.multas.add(novaMulta);
-        }
+        emprestimoServico.realizarDevolucao(emprestimo);
     }
 
     public List<Multa> debitosPendentes(Membro membro) {
-        return this.multas.stream()
-                .filter(multa -> multa.getMembro().equals(membro) && multa.getStatus() == StatusMulta.PENDENTE)
-                .collect(Collectors.toList());
+        return emprestimoServico.debitosPendentes(membro);
     }
 
-    //==== Relatórios ====
+    public Emprestimo buscarEmprestimoAtivo(Membro membro, ItemDoAcervo item) throws EmprestimoNaoEncontradoException {
+        return emprestimoServico.buscarEmprestimoAtivo(membro, item);
+    }
+
+    public List<Emprestimo> listarEmprestimosAtivosPorMembro(Membro membro) {
+        return emprestimoServico.listarEmprestimosAtivosPorMembro(membro);
+    }
+
+    public void realizarReserva(Membro membro, ItemDoAcervo item) throws ItemDisponivelException, ReservaDuplicadaException {
+        reservaServico.realizarReserva(membro, item);
+    }
+
+    public List<Reserva> listarReservasAtivasPorMembro(Membro membro) {
+        return reservaServico.listarReservasAtivasPorMembro(membro);
+    }
+
+    // ========== SERVIÇO DE CAIXA ==========
+    // CORREÇÃO: Adicionada ValidacaoException
+    public void abrirCaixa(BigDecimal saldoInicial) throws CaixaAbertoException, PermissaoInsuficienteException, ValidacaoException {
+        funcionarioServico.validarPermissao(Permissao.GERENTE);
+        caixaServico.abrirCaixa(saldoInicial);
+    }
+
+    // CORREÇÃO: Adicionada ValidacaoException
+    public void pagarMulta(Multa multa) throws CaixaFechadoException, PermissaoInsuficienteException, ValidacaoException {
+        funcionarioServico.validarPermissao(Permissao.USUARIO_COMUM);
+        caixaServico.registrarPagamentoDeMulta(multa);
+    }
+
+    // CORREÇÃO: Adicionada ValidacaoException
+    public Caixa fecharCaixa() throws CaixaFechadoException, PermissaoInsuficienteException, ValidacaoException {
+        funcionarioServico.validarPermissao(Permissao.GERENTE);
+        return caixaServico.fecharCaixa();
+    }
+
+    // ... (outros métodos de caixa e relatório) ...
+    public Caixa getCaixaAberto() {
+        return caixaServico.getCaixaAberto();
+    }
+
     public List<Emprestimo> gerarRelatorioDeAtrasos() {
-        return this.emprestimos.stream()
-                .filter(e -> e.getStatus() == StatusEmprestimo.ATIVO && e.estaAtrasado())
-                .collect(Collectors.toList());
+        return relatorioServico.gerarRelatorioDeAtrasos();
     }
 
     public Map<ItemDoAcervo, Long> gerarRelatorioDeItensMaisEmprestados() {
-        return this.emprestimos.stream()
-                .collect(Collectors.groupingBy(Emprestimo::getItemDoAcervo, Collectors.counting()
-                ));
+        return relatorioServico.gerarRelatorioDeItensMaisEmprestados();
     }
 
     public List<Reserva> gerarRelatorioDeReservasAtivas() {
-        return this.reservas.stream()
-                .filter(r -> r.getStatus() == StatusReserva.ATIVA)
-                .collect(Collectors.toList());
-    }
-
-    //==== Setores ====
-    public void adicionarSetor(Setor setor) {
-        this.setores.add(setor);
-    }
-
-    //==== Caixa ====
-    public void abrirCaixa(BigDecimal saldoInicial) {
-        if (this.caixaAtual == null || this.caixaAtual.getStatus() == biblioteca.negocios.enums.StatusCaixa.FECHADO) {
-            this.caixaAtual = new Caixa(saldoInicial);
-            System.out.println("Caixa aberto com saldo inicial de R$" + saldoInicial);
-        } else {
-            System.out.println("O caixa do dia já está aberto.");
-        }
-    }
-
-    public void fecharCaixa() {
-        if (this.caixaAtual != null && this.caixaAtual.getStatus() == biblioteca.negocios.enums.StatusCaixa.ABERTO) {
-            this.caixaAtual.fecharCaixa();
-        }
-    }
-
-    //==== Funcionários ====
-    public void adicionarFuncionario(Funcionario funcionario) {
-        this.funcionarios.add(funcionario);
-    }
-
-    public boolean autenticarFuncionario(String login, String senha) {
-        for (Funcionario f : this.funcionarios) {
-            if (f.getLogin().equals(login) && f.getSenhaHash().equals(senha)) {
-                this.funcionarioLogado = f;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void salvar() {
-        for (ItemDoAcervo item : acervo) {
-            if (item instanceof Livro) {
-                repositorioLivro.salvar((Livro) item);
-            }
-        }
-
-        for (Membro m : membros) {
-            repositorioMembro.salvar(m);
-        }
-        for (Funcionario f : funcionarios) {
-            repositorioFuncionario.salvar(f);
-        }
-        for (Emprestimo e : emprestimos) {
-            repositorioEmprestimo.salvar(e);
-        }
-        for (Multa m : multas) {
-            repositorioMulta.salvar(m);
-        }
-        System.out.println("Todos os dados foram salvos em CSV!");
+        return relatorioServico.gerarRelatorioDeReservasAtivas();
     }
 }
