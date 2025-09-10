@@ -61,7 +61,7 @@ public class EmprestimoServico {
         repositorioAcervo.atualizar(item);
     }
 
-    public void realizarDevolucao(Emprestimo emprestimo) {
+    public Multa realizarDevolucao(Emprestimo emprestimo) {
         emprestimo.finalizarEmprestimo(LocalDate.now());
         repositorioEmprestimo.atualizar(emprestimo);
 
@@ -70,14 +70,18 @@ public class EmprestimoServico {
         item.setStatus(EnumStatusItem.DISPONIVEL);
         repositorioAcervo.atualizar(item);
 
+        // Lógica de verificação de atraso
         if (emprestimo.getDevolucaoRealizada().isAfter(emprestimo.getDataDevolucaoPrevista())) {
             long diasAtraso = ChronoUnit.DAYS.between(emprestimo.getDataDevolucaoPrevista(), emprestimo.getDevolucaoRealizada());
             if (diasAtraso > 0) {
                 BigDecimal valorMulta = new BigDecimal(diasAtraso);
                 Multa novaMulta = new Multa(emprestimo.getMembro(), emprestimo, valorMulta);
                 repositorioMulta.adicionar(novaMulta);
+                return novaMulta; // <<< RETORNE A MULTA GERADA
             }
         }
+
+        return null; // <<< RETORNE NULL SE NÃO HOUVER ATRASO
     }
 
     public List<Multa> debitosPendentes(Membro membro) {

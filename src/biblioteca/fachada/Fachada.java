@@ -1,6 +1,7 @@
 package biblioteca.fachada;
 
-import biblioteca.dados.persistencia.*;
+// 1. Importe o novo GerenciadorPersistencia
+import biblioteca.dados.GerenciadorPersistencia;
 import biblioteca.dados.repositorio.*;
 import biblioteca.negocios.entidade.*;
 import biblioteca.negocios.enums.Permissao;
@@ -30,7 +31,6 @@ public class Fachada {
 
     private static Fachada instancia;
 
-    // ... (declaração dos serviços) ...
     private final FuncionarioServico funcionarioServico;
     private final MembroServico membroServico;
     private final AcervoServico acervoServico;
@@ -40,15 +40,16 @@ public class Fachada {
     private final RelatorioServico relatorioServico;
 
     private Fachada() {
-        // ... (inicialização dos repositórios e serviços) ...
-        IRepositorioFuncionario repositorioFuncionario = new RepositorioFuncionarioPersistencia();
-        IRepositorioMembro repositorioMembro = new RepositorioMembroPersistencia();
-        IRepositorioItemDoAcervo repositorioAcervo = new RepositorioItemDoAcervoPersistencia();
-        IRepositorioEmprestimo repositorioEmprestimo = new RepositorioEmprestimoPersistencia();
-        IRepositorioMulta repositorioMulta = new RepositorioMultaPersistencia();
-        IRepositorioCaixa repositorioCaixa = new RepositorioCaixaPersistencia();
-        IRepositorioReserva repositorioReserva = new RepositorioReservaPersistencia();
+        // 2. Apague as instanciações antigas e substitua pelas chamadas ao GerenciadorPersistencia
+        IRepositorioFuncionario repositorioFuncionario = GerenciadorPersistencia.getRepositorioFuncionario();
+        IRepositorioMembro repositorioMembro = GerenciadorPersistencia.getRepositorioMembro();
+        IRepositorioItemDoAcervo repositorioAcervo = GerenciadorPersistencia.getRepositorioItemDoAcervo();
+        IRepositorioEmprestimo repositorioEmprestimo = GerenciadorPersistencia.getRepositorioEmprestimo();
+        IRepositorioMulta repositorioMulta = GerenciadorPersistencia.getRepositorioMulta();
+        IRepositorioCaixa repositorioCaixa = GerenciadorPersistencia.getRepositorioCaixa();
+        IRepositorioReserva repositorioReserva = GerenciadorPersistencia.getRepositorioReserva();
 
+        // 3. A inicialização dos serviços permanece exatamente igual, pois eles dependem das interfaces
         this.funcionarioServico = new FuncionarioServico(repositorioFuncionario);
         this.membroServico = new MembroServico(repositorioMembro, repositorioEmprestimo);
         this.acervoServico = new AcervoServico(repositorioAcervo, repositorioEmprestimo);
@@ -64,6 +65,8 @@ public class Fachada {
         }
         return instancia;
     }
+
+    // O RESTO DO FICHEIRO (TODOS OS MÉTODOS PÚBLICOS) PERMANECE EXATAMENTE IGUAL
 
     // ... (métodos de login/sessão) ...
     public void login(String login, String senha) throws CredenciaisInvalidasException {
@@ -96,19 +99,16 @@ public class Fachada {
         acervoServico.cadastrarLivro(livro);
     }
 
-    // CORREÇÃO: Adicionada ValidacaoException
     public void adicionarCopias(int idItem, int quantidade) throws ItemNaoEncontradoException, ValidacaoException, PermissaoInsuficienteException {
         funcionarioServico.validarPermissao(Permissao.GERENTE);
         acervoServico.adicionarCopias(idItem, quantidade);
     }
 
-    // CORREÇÃO: Adicionada ValidacaoException
     public void removerItem(int idItem) throws ItemNaoEncontradoException, ItemComPendenciasException, PermissaoInsuficienteException, ValidacaoException {
         funcionarioServico.validarPermissao(Permissao.ADMINISTRADOR);
         acervoServico.removerItem(idItem);
     }
 
-    // ... (outros métodos do acervo) ...
     public ItemDoAcervo buscarItemPorTitulo(String titulo) {
         return acervoServico.buscarItemPorTitulo(titulo);
     }
@@ -126,13 +126,11 @@ public class Fachada {
         membroServico.cadastrarMembro(membro);
     }
 
-    // CORREÇÃO: Adicionada ValidacaoException
     public void cadastrarFuncionario(Funcionario funcionario) throws CpfJaExistenteException, ValidacaoException, PermissaoInsuficienteException {
         funcionarioServico.validarPermissao(Permissao.ADMINISTRADOR);
         funcionarioServico.cadastrarFuncionario(funcionario);
     }
 
-    // ... (outros métodos de pessoas) ...
     public Membro buscarMembroPorCpf(String cpf) {
         return membroServico.buscarMembroPorCpf(cpf);
     }
@@ -154,8 +152,8 @@ public class Fachada {
         emprestimoServico.realizarEmprestimo(membro, item);
     }
 
-    public void realizarDevolucao(Emprestimo emprestimo) {
-        emprestimoServico.realizarDevolucao(emprestimo);
+    public Multa realizarDevolucao(Emprestimo emprestimo) {
+        return emprestimoServico.realizarDevolucao(emprestimo);
     }
 
     public List<Multa> debitosPendentes(Membro membro) {
@@ -179,25 +177,21 @@ public class Fachada {
     }
 
     // ========== SERVIÇO DE CAIXA ==========
-    // CORREÇÃO: Adicionada ValidacaoException
     public void abrirCaixa(BigDecimal saldoInicial) throws CaixaAbertoException, PermissaoInsuficienteException, ValidacaoException {
         funcionarioServico.validarPermissao(Permissao.GERENTE);
         caixaServico.abrirCaixa(saldoInicial);
     }
 
-    // CORREÇÃO: Adicionada ValidacaoException
     public void pagarMulta(Multa multa) throws CaixaFechadoException, PermissaoInsuficienteException, ValidacaoException {
         funcionarioServico.validarPermissao(Permissao.USUARIO_COMUM);
         caixaServico.registrarPagamentoDeMulta(multa);
     }
 
-    // CORREÇÃO: Adicionada ValidacaoException
     public Caixa fecharCaixa() throws CaixaFechadoException, PermissaoInsuficienteException, ValidacaoException {
         funcionarioServico.validarPermissao(Permissao.GERENTE);
         return caixaServico.fecharCaixa();
     }
 
-    // ... (outros métodos de caixa e relatório) ...
     public Caixa getCaixaAberto() {
         return caixaServico.getCaixaAberto();
     }

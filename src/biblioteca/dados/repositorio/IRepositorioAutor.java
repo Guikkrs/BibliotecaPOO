@@ -13,5 +13,7 @@ public interface IRepositorioAutor {
 
     Autor buscarPorNome(String nome);
 
+    Autor buscarPorId(int id);
+
     List<Autor> listarTodos();
 }

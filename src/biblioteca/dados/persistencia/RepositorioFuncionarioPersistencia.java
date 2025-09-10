@@ -73,6 +73,16 @@ public class RepositorioFuncionarioPersistencia implements IRepositorioFuncionar
     }
 
     @Override
+    public Funcionario buscarPorId(int id) {
+        for (Funcionario f : this.funcionarios) {
+            if (f.getId() == id) {
+                return f;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public List<Funcionario> listarTodos() {
         return new ArrayList<>(this.funcionarios);
     }

@@ -9,5 +9,7 @@ public interface IRepositorioFuncionario {
     void remover(Funcionario funcionario);
     Funcionario buscarPorCpf(String cpf);
     Funcionario autenticar(String login, String senha);
+    Funcionario buscarPorId(int id);
+
     List<Funcionario> listarTodos();
 }

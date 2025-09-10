@@ -4,6 +4,7 @@ import biblioteca.fachada.Fachada;
 import biblioteca.negocios.entidade.Emprestimo;
 import biblioteca.negocios.entidade.ItemDoAcervo;
 import biblioteca.negocios.entidade.Membro;
+import biblioteca.negocios.entidade.Multa; // Import necessário para usar a classe Multa
 import biblioteca.negocios.excecoes.emprestimo.EmprestimoNaoEncontradoException;
 import biblioteca.negocios.excecoes.itemDoAcervo.ItemNaoEncontradoException;
 import biblioteca.negocios.excecoes.pessoa.PessoaNaoEncontradaException;
@@ -45,8 +46,21 @@ public class TelaGerenciarEmprestimos {
             }
 
             Emprestimo emprestimo = fachada.buscarEmprestimoAtivo(membro, item);
-            fachada.realizarDevolucao(emprestimo);
-            System.out.println("SUCESSO: Devolução registrada. Verifique se há multas geradas.");
+
+            // Capture o retorno do método
+            Multa multaGerada = fachada.realizarDevolucao(emprestimo);
+
+            System.out.println("\nSUCESSO: Devolução registrada!");
+
+            // Verifique se uma multa foi retornada
+            if (multaGerada != null) {
+                System.out.printf("ATENÇÃO: Devolução com atraso! Multa de R$%.2f gerada para %s.\n",
+                        multaGerada.getValor(),
+                        multaGerada.getMembro().getNome());
+                System.out.println("O membro agora possui débitos pendentes.");
+            } else {
+                System.out.println("Devolução realizada dentro do prazo.");
+            }
 
         } catch (PessoaNaoEncontradaException | ItemNaoEncontradoException | EmprestimoNaoEncontradoException e) {
             System.out.println("ERRO: " + e.getMessage());

@@ -66,6 +66,16 @@ public class RepositorioAutorPersistencia implements IRepositorioAutor {
     }
 
     @Override
+    public Autor buscarPorId(int id) {
+        for (Autor a : this.autores) {
+            if (a.getId() == id) {
+                return a;
+            }
+        }
+        return null;
+    }
+
+    @Override
     public List<Autor> listarTodos() {
         return new ArrayList<>(this.autores);
     }
