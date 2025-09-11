@@ -116,21 +116,25 @@ public class RepositorioMultaCSV implements IRepositorioMulta {
                 Emprestimo emprestimo = this.repositorioEmprestimo.buscarPorId(idEmprestimo);
 
                 if (membro != null && emprestimo != null) {
-                    Multa multa = new Multa(
-                            membro,
-                            emprestimo,
-                            new BigDecimal(csvRecord.get("valor"))
-                    );
-                    multa.setId(Integer.parseInt(csvRecord.get("id")));
-                    multa.setStatus(StatusMulta.valueOf(csvRecord.get("status")));
+                    // --- MUDANÇA PRINCIPAL AQUI ---
 
+                    // 1. Lê todos os dados do CSV
+                    int id = Integer.parseInt(csvRecord.get("id"));
+                    BigDecimal valor = new BigDecimal(csvRecord.get("valor"));
+                    StatusMulta status = StatusMulta.valueOf(csvRecord.get("status"));
+                    LocalDate dataCriacao = LocalDate.parse(csvRecord.get("dataCriacao"));
+
+                    LocalDate dataPagamento = null;
                     String dataPagamentoStr = csvRecord.get("dataPagamento");
-                    if(dataPagamentoStr != null && !dataPagamentoStr.isEmpty()){
-                        // A classe Multa não tem um setDataPagamento, então precisamos de um truque
-                        multa.registrarPagamento(); // Simula o pagamento para setar a data
+                    if (dataPagamentoStr != null && !dataPagamentoStr.isEmpty()) {
+                        dataPagamento = LocalDate.parse(dataPagamentoStr);
                     }
 
+                    // 2. Usa o novo construtor para criar o objeto Multa
+                    Multa multa = new Multa(id, membro, emprestimo, valor, status, dataCriacao, dataPagamento);
+
                     this.multas.add(multa);
+
                 } else {
                     System.err.println("AVISO: Não foi possível carregar a multa com ID " + csvRecord.get("id") + " pois o membro ou empréstimo associado não foi encontrado.");
                 }
@@ -142,7 +146,6 @@ public class RepositorioMultaCSV implements IRepositorioMulta {
             System.err.println("ERRO CRÍTICO ao ler " + NOME_ARQUIVO + ": " + e.getMessage());
         }
     }
-
     private void atualizarProximoId() {
         if (!this.multas.isEmpty()) {
             this.proximoId = this.multas.stream().mapToInt(Multa::getId).max().orElse(0) + 1;

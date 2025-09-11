@@ -5,6 +5,9 @@ import biblioteca.dados.repositorio.IRepositorioMulta;
 import biblioteca.negocios.entidade.Caixa;
 import biblioteca.negocios.entidade.Multa;
 import java.math.BigDecimal;
+import biblioteca.negocios.entidade.Caixa;
+import biblioteca.negocios.excecoes.caixa.CaixaAbertoException;
+import biblioteca.negocios.excecoes.caixa.CaixaFechadoException;
 
 public class CaixaServico {
 
@@ -16,9 +19,9 @@ public class CaixaServico {
         this.repositorioMulta = repositorioMulta;
     }
 
-    public Caixa abrirCaixa(BigDecimal saldoInicial) throws IllegalStateException {
+    public Caixa abrirCaixa(BigDecimal saldoInicial) throws CaixaAbertoException {
         if (repositorioCaixa.buscarCaixaAberto() != null) {
-            throw new IllegalStateException("Já existe um caixa aberto.");
+            throw new CaixaAbertoException();
         }
         Caixa novoCaixa = new Caixa(saldoInicial);
         repositorioCaixa.adicionar(novoCaixa);
@@ -37,10 +40,10 @@ public class CaixaServico {
         }
     }
 
-    public Caixa fecharCaixa() throws IllegalStateException {
+    public Caixa fecharCaixa() throws CaixaFechadoException { // <-- 2. MUDE A ASSINATURA
         Caixa caixaAberto = repositorioCaixa.buscarCaixaAberto();
         if (caixaAberto == null) {
-            throw new IllegalStateException("Não há caixa aberto para fechar.");
+            throw new CaixaFechadoException(); // <-- 3. LANCE A EXCEÇÃO CORRETA
         }
         caixaAberto.fecharCaixa();
         repositorioCaixa.atualizar(caixaAberto);

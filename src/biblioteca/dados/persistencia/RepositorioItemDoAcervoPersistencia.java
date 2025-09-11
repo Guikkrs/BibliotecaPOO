@@ -2,6 +2,7 @@ package biblioteca.dados.persistencia;
 
 import biblioteca.dados.repositorio.IRepositorioItemDoAcervo;
 import biblioteca.negocios.entidade.ItemDoAcervo;
+import biblioteca.negocios.enums.EnumSetor;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class RepositorioItemDoAcervoPersistencia implements IRepositorioItemDoAcervo {
 
@@ -81,6 +83,13 @@ public class RepositorioItemDoAcervoPersistencia implements IRepositorioItemDoAc
         } catch (IOException e) {
             System.err.println("Erro ao salvar acervo: " + e.getMessage());
         }
+    }
+
+    @Override
+    public List<ItemDoAcervo> buscarPorSetor(EnumSetor setor) {
+        return this.acervo.stream()
+                .filter(item -> item.getSetor() == setor)
+                .collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")

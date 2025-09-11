@@ -2,7 +2,6 @@ package biblioteca.dados.persistencia;
 
 import biblioteca.dados.repositorio.IRepositorioCaixa;
 import biblioteca.negocios.entidade.Caixa;
-import biblioteca.negocios.entidade.Pessoa;
 import biblioteca.negocios.enums.StatusCaixa;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -12,7 +11,6 @@ import org.apache.commons.csv.CSVRecord;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Reader;
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -81,8 +79,8 @@ public class RepositorioCaixaCSV implements IRepositorioCaixa {
                         caixa.getId(),
                         caixa.getDataAbertura(),
                         caixa.getSaldoInicial().toPlainString(),
-                        caixa.getDataFechamento(), // LocalDate é salvo corretamente como string
-                        caixa.getSaldoFinal() != null ? caixa.getSaldoFinal().toPlainString() : "", // Trata valor nulo
+                        caixa.getDataFechamento(),
+                        caixa.getSaldoFinal() != null ? caixa.getSaldoFinal().toPlainString() : "",
                         caixa.getSaldoAtual().toPlainString(),
                         caixa.getStatus().name()
                 );
@@ -93,6 +91,7 @@ public class RepositorioCaixaCSV implements IRepositorioCaixa {
         }
     }
 
+    // --- MÉTODO CORRIGIDO ---
     private void carregarDoArquivo() {
         try (
                 Reader reader = Files.newBufferedReader(Paths.get(NOME_ARQUIVO));
@@ -101,32 +100,27 @@ public class RepositorioCaixaCSV implements IRepositorioCaixa {
         ) {
             this.caixas.clear();
             for (CSVRecord csvRecord : csvParser) {
-                // O construtor do Caixa tem regras de negócio. Para carregar do arquivo,
-                // precisamos contornar isso, criando o objeto e depois setando os valores.
-                // Isso requer um truque com "reflection" para setar os campos 'final'.
+                // Lê todos os campos do CSV
+                int id = Integer.parseInt(csvRecord.get("id"));
+                LocalDate dataAbertura = LocalDate.parse(csvRecord.get("dataAbertura"));
                 BigDecimal saldoInicial = new BigDecimal(csvRecord.get("saldoInicial"));
-                Caixa caixa = new Caixa(saldoInicial);
+                BigDecimal saldoAtual = new BigDecimal(csvRecord.get("saldoAtual"));
+                StatusCaixa status = StatusCaixa.valueOf(csvRecord.get("status"));
 
-                // Seta os valores lidos do CSV
-                caixa.setId(Integer.parseInt(csvRecord.get("id")));
-
-                // Seta os campos restantes, que não estão no construtor
+                LocalDate dataFechamento = null;
                 String dataFechamentoStr = csvRecord.get("dataFechamento");
                 if (dataFechamentoStr != null && !dataFechamentoStr.isEmpty()) {
-                    setarCampoPrivado(caixa, "dataFechamento", LocalDate.parse(dataFechamentoStr));
+                    dataFechamento = LocalDate.parse(dataFechamentoStr);
                 }
 
+                BigDecimal saldoFinal = null;
                 String saldoFinalStr = csvRecord.get("saldoFinal");
                 if (saldoFinalStr != null && !saldoFinalStr.isEmpty()) {
-                    setarCampoPrivado(caixa, "saldoFinal", new BigDecimal(saldoFinalStr));
+                    saldoFinal = new BigDecimal(saldoFinalStr);
                 }
 
-                setarCampoPrivado(caixa, "saldoAtual", new BigDecimal(csvRecord.get("saldoAtual")));
-                setarCampoPrivado(caixa, "status", StatusCaixa.valueOf(csvRecord.get("status")));
-
-                // Sobrescreve o campo 'final' dataAbertura com o valor do CSV
-                setarCampoPrivadoFinal(caixa, "dataAbertura", LocalDate.parse(csvRecord.get("dataAbertura")));
-
+                // Usa o novo construtor da classe Caixa
+                Caixa caixa = new Caixa(id, dataAbertura, saldoInicial, dataFechamento, saldoFinal, saldoAtual, status);
                 this.caixas.add(caixa);
             }
             atualizarProximoId();
@@ -134,7 +128,7 @@ public class RepositorioCaixaCSV implements IRepositorioCaixa {
             System.out.println("INFO: Arquivo " + NOME_ARQUIVO + " não encontrado, iniciando com base vazia.");
         } catch (Exception e) {
             System.err.println("ERRO CRÍTICO ao ler " + NOME_ARQUIVO + ": " + e.getMessage());
-            e.printStackTrace(); // Ajuda a depurar
+            e.printStackTrace();
         }
     }
 
@@ -144,27 +138,5 @@ public class RepositorioCaixaCSV implements IRepositorioCaixa {
         } else {
             this.proximoId = 1;
         }
-    }
-
-    // --- Métodos Auxiliares para setar campos privados ---
-    // A classe Caixa não foi desenhada para ter seus valores alterados após a criação,
-    // então precisamos desses "truques" para carregar os dados do arquivo.
-
-    private void setarCampoPrivado(Object objeto, String nomeDoCampo, Object valor) throws Exception {
-        Field campo = objeto.getClass().getDeclaredField(nomeDoCampo);
-        campo.setAccessible(true);
-        campo.set(objeto, valor);
-    }
-
-    private void setarCampoPrivadoFinal(Object objeto, String nomeDoCampo, Object valor) throws Exception {
-        Field campo = objeto.getClass().getDeclaredField(nomeDoCampo);
-        campo.setAccessible(true);
-
-        // Remove o modificador 'final' temporariamente
-        Field modifiersField = Field.class.getDeclaredField("modifiers");
-        modifiersField.setAccessible(true);
-        modifiersField.setInt(campo, campo.getModifiers() & ~java.lang.reflect.Modifier.FINAL);
-
-        campo.set(objeto, valor);
     }
 }

@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class RepositorioItemDoAcervoCSV implements IRepositorioItemDoAcervo {
 
@@ -81,6 +82,13 @@ public class RepositorioItemDoAcervoCSV implements IRepositorioItemDoAcervo {
     @Override
     public List<ItemDoAcervo> listarTodos() {
         return new ArrayList<>(this.acervo);
+    }
+
+    @Override
+    public List<ItemDoAcervo> buscarPorSetor(EnumSetor setor) {
+        return this.acervo.stream()
+                .filter(item -> item.getSetor() == setor)
+                .collect(Collectors.toList());
     }
 
     private void salvarNoArquivo() {
@@ -159,4 +167,6 @@ public class RepositorioItemDoAcervoCSV implements IRepositorioItemDoAcervo {
             this.proximoId = 1;
         }
     }
+
+
 }

@@ -23,6 +23,7 @@ public class Emprestimo implements java.io.Serializable {
         this.itemDoAcervo = itemDoAcervo;
         this.dataEmprestimo = dataEmprestimo;
         this.dataDevolucaoPrevista = dataEmprestimo.plusDays(14); // Prazo padrão de 14 dias
+        //this.dataDevolucaoPrevista = dataEmprestimo.minusDays(1); // <-- ALTERE AQUI APENAS PARA TESTE
         this.status = StatusEmprestimo.ATIVO;
         this.devolucaoRealizada = null;
     }

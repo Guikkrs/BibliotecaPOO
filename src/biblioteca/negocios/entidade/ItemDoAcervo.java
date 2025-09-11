@@ -40,6 +40,10 @@ public abstract class ItemDoAcervo implements java.io.Serializable {
         return autor;
     }
 
+    public void setAutor(Autor autor) {
+        this.autor = autor;
+    }
+
     public int getAno() {
         return ano;
     }

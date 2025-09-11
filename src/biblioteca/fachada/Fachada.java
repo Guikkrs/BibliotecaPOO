@@ -1,9 +1,9 @@
 package biblioteca.fachada;
 
-// 1. Importe o novo GerenciadorPersistencia
 import biblioteca.dados.GerenciadorPersistencia;
 import biblioteca.dados.repositorio.*;
 import biblioteca.negocios.entidade.*;
+import biblioteca.negocios.enums.EnumSetor;
 import biblioteca.negocios.enums.Permissao;
 import biblioteca.negocios.excecoes.acervo.ItemComPendenciasException;
 import biblioteca.negocios.excecoes.acervo.ItemNaoDisponivelException;
@@ -40,7 +40,6 @@ public class Fachada {
     private final RelatorioServico relatorioServico;
 
     private Fachada() {
-        // 2. Apague as instanciações antigas e substitua pelas chamadas ao GerenciadorPersistencia
         IRepositorioFuncionario repositorioFuncionario = GerenciadorPersistencia.getRepositorioFuncionario();
         IRepositorioMembro repositorioMembro = GerenciadorPersistencia.getRepositorioMembro();
         IRepositorioItemDoAcervo repositorioAcervo = GerenciadorPersistencia.getRepositorioItemDoAcervo();
@@ -48,11 +47,12 @@ public class Fachada {
         IRepositorioMulta repositorioMulta = GerenciadorPersistencia.getRepositorioMulta();
         IRepositorioCaixa repositorioCaixa = GerenciadorPersistencia.getRepositorioCaixa();
         IRepositorioReserva repositorioReserva = GerenciadorPersistencia.getRepositorioReserva();
+        IRepositorioAutor repositorioAutor = GerenciadorPersistencia.getRepositorioAutor();
 
-        // 3. A inicialização dos serviços permanece exatamente igual, pois eles dependem das interfaces
         this.funcionarioServico = new FuncionarioServico(repositorioFuncionario);
         this.membroServico = new MembroServico(repositorioMembro, repositorioEmprestimo);
-        this.acervoServico = new AcervoServico(repositorioAcervo, repositorioEmprestimo);
+        // AQUI ESTÁ A LINHA CORRIGIDA
+        this.acervoServico = new AcervoServico(repositorioAcervo, repositorioEmprestimo, repositorioAutor);
         this.caixaServico = new CaixaServico(repositorioCaixa, repositorioMulta);
         this.emprestimoServico = new EmprestimoServico(repositorioEmprestimo, repositorioMulta, repositorioAcervo);
         this.reservaServico = new ReservaServico(repositorioReserva, repositorioAcervo);
@@ -66,9 +66,7 @@ public class Fachada {
         return instancia;
     }
 
-    // O RESTO DO FICHEIRO (TODOS OS MÉTODOS PÚBLICOS) PERMANECE EXATAMENTE IGUAL
-
-    // ... (métodos de login/sessão) ...
+    // ========== SERVIÇO DE LOGIN E SESSÃO ==========
     public void login(String login, String senha) throws CredenciaisInvalidasException {
         funcionarioServico.login(login, senha);
     }
@@ -121,6 +119,10 @@ public class Fachada {
         return acervoServico.listarTodosLivros();
     }
 
+    public List<ItemDoAcervo> buscarPorSetor(EnumSetor setor) {
+        return acervoServico.buscarPorSetor(setor);
+    }
+
     // ========== SERVIÇO DE PESSOAS (MEMBRO E FUNCIONÁRIO) ==========
     public void cadastrarMembro(Membro membro) throws CpfJaExistenteException, ValidacaoException {
         membroServico.cadastrarMembro(membro);
@@ -147,7 +149,7 @@ public class Fachada {
         return funcionarioServico.listarTodosFuncionarios();
     }
 
-    // ... (outros métodos de empréstimo e reserva) ...
+    // ========== SERVIÇO DE EMPRÉSTIMO E RESERVA ==========
     public void realizarEmprestimo(Membro membro, ItemDoAcervo item) throws MembroComDebitoException, ItemNaoDisponivelException, LimiteDeEmprestimosAtingidoException {
         emprestimoServico.realizarEmprestimo(membro, item);
     }
@@ -196,6 +198,7 @@ public class Fachada {
         return caixaServico.getCaixaAberto();
     }
 
+    // ========== SERVIÇO DE RELATÓRIOS ==========
     public List<Emprestimo> gerarRelatorioDeAtrasos() {
         return relatorioServico.gerarRelatorioDeAtrasos();
     }

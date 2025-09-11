@@ -10,6 +10,5 @@ public interface IRepositorioFuncionario {
     Funcionario buscarPorCpf(String cpf);
     Funcionario autenticar(String login, String senha);
     Funcionario buscarPorId(int id);
-
     List<Funcionario> listarTodos();
 }

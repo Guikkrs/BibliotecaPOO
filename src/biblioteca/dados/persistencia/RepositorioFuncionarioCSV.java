@@ -17,6 +17,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import static biblioteca.negocios.enums.Permissao.ADMINISTRADOR;
+import static biblioteca.negocios.enums.Permissao.GERENTE;
+
 public class RepositorioFuncionarioCSV implements IRepositorioFuncionario {
 
     private List<Funcionario> funcionarios;
@@ -27,6 +30,9 @@ public class RepositorioFuncionarioCSV implements IRepositorioFuncionario {
     public RepositorioFuncionarioCSV() {
         this.funcionarios = new ArrayList<>();
         carregarDoArquivo();
+        if(this.funcionarios.isEmpty()){
+            CriarFuncionarioBase();
+        }
     }
 
     @Override
@@ -139,5 +145,12 @@ public class RepositorioFuncionarioCSV implements IRepositorioFuncionario {
         } else {
             this.proximoId = 1;
         }
+    }
+    public void CriarFuncionarioBase() {
+        Funcionario f1 = new Funcionario("admin", "11122233345","(87)996342896",46,"admin","123",ADMINISTRADOR);
+        Funcionario f2 = new Funcionario("gerente", "11122233347","(87)996342888",26,"gerente","123",GERENTE);
+        this.adicionar(f1);
+        this.adicionar(f2);
+        System.out.println("Funcionarios Padrao(CSV) carregados com sucesso");
     }
 }

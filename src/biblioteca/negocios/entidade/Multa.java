@@ -5,13 +5,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
 
-/**
- * Representa uma penalidade financeira aplicada a um Membro por atraso na devolução.
- * A classe é Serializable para permitir a persistência de seus objetos.
- */
 public class Multa implements java.io.Serializable {
 
-    private int id; // Identificador único para a persistência
+    private int id;
     private Membro membro;
     private Emprestimo emprestimo;
     private BigDecimal valor;
@@ -32,6 +28,17 @@ public class Multa implements java.io.Serializable {
         this.status = StatusMulta.PENDENTE;
         this.dataCriacao = LocalDate.now();
         this.dataPagamento = null;
+    }
+
+
+    public Multa(int id, Membro membro, Emprestimo emprestimo, BigDecimal valor, StatusMulta status, LocalDate dataCriacao, LocalDate dataPagamento) {
+        this.id = id;
+        this.membro = membro;
+        this.emprestimo = emprestimo;
+        this.valor = valor;
+        this.status = status;
+        this.dataCriacao = dataCriacao;
+        this.dataPagamento = dataPagamento;
     }
 
     // GETTERS E SETTERS
@@ -74,10 +81,6 @@ public class Multa implements java.io.Serializable {
 
     // MÉTODOS DE NEGÓCIO
 
-    /**
-     * Registra o pagamento da multa, atualizando o status e a data de pagamento.
-     * @return true se o pagamento foi registrado com sucesso (multa estava pendente), false caso contrário.
-     */
     public boolean registrarPagamento() {
         if (this.status == StatusMulta.PENDENTE) {
             this.status = StatusMulta.PAGA;
@@ -89,9 +92,6 @@ public class Multa implements java.io.Serializable {
 
     // MÉTODOS PADRÃO (EQUALS, HASHCODE, TOSTRING)
 
-    /**
-     * MODIFICAÇÃO: A igualdade agora é baseada estritamente no ID.
-     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -101,9 +101,6 @@ public class Multa implements java.io.Serializable {
         return id == multa.id;
     }
 
-    /**
-     * MODIFICAÇÃO: O hashCode agora é baseado no ID.
-     */
     @Override
     public int hashCode() {
         return Objects.hash(id);

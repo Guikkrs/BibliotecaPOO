@@ -17,6 +17,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import static biblioteca.negocios.enums.Permissao.MEMBRO;
+
 public class RepositorioMembroCSV implements IRepositorioMembro {
 
     private List<Membro> membros;
@@ -27,6 +29,9 @@ public class RepositorioMembroCSV implements IRepositorioMembro {
     public RepositorioMembroCSV() {
         this.membros = new ArrayList<>();
         carregarDoArquivo();
+        if(this.membros.isEmpty()){
+            CriarMembroBase();
+        }
     }
 
     @Override
@@ -139,5 +144,10 @@ public class RepositorioMembroCSV implements IRepositorioMembro {
         } else {
             this.proximoId = 1;
         }
+    }
+    public void CriarMembroBase() {
+        Membro m1 = new Membro("Membro1", "11122233315","(87)996342168",24,"membro","123", MEMBRO);
+        this.adicionar(m1);
+        System.out.println("Membro Padrao(CSV) carregado com sucesso");
     }
 }

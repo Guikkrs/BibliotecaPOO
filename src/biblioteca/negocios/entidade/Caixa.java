@@ -1,3 +1,5 @@
+// Em: src/biblioteca/negocios/entidade/Caixa.java
+
 package biblioteca.negocios.entidade;
 
 import biblioteca.negocios.enums.StatusCaixa;
@@ -5,16 +7,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
 
-/**
- * Representa o registro financeiro de um dia de operação da biblioteca.
- * Cada instância desta classe pode ser persistida como um registro histórico.
- * A classe é Serializable para permitir a persistência de seus objetos.
- */
 public class Caixa implements java.io.Serializable {
 
-    private int id; // Identificador único para a persistência
-    private final LocalDate dataAbertura;
-    private final BigDecimal saldoInicial;
+    private int id;
+    // --- ALTERAÇÃO AQUI: REMOVA O 'final' ---
+    private LocalDate dataAbertura;
+    private BigDecimal saldoInicial;
 
     private LocalDate dataFechamento;
     private BigDecimal saldoFinal;
@@ -22,7 +20,6 @@ public class Caixa implements java.io.Serializable {
     private StatusCaixa status;
 
     public Caixa(BigDecimal saldoInicial) {
-        // Validação para garantir que o caixa seja criado em um estado consistente
         if (saldoInicial == null || saldoInicial.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("O saldo inicial não pode ser nulo ou negativo.");
         }
@@ -30,11 +27,26 @@ public class Caixa implements java.io.Serializable {
         this.saldoInicial = saldoInicial;
         this.saldoAtual = saldoInicial;
         this.status = StatusCaixa.ABERTO;
-        this.dataFechamento = null; // Inicia como nulo
-        this.saldoFinal = null;     // Inicia como nulo
+        this.dataFechamento = null;
+        this.saldoFinal = null;
     }
 
-    // GETTERS E SETTERS
+    // --- NOVO CONSTRUTOR ADICIONADO AQUI ---
+    /**
+     * Construtor para carregar um Caixa a partir da persistência (CSV).
+     * Este construtor não executa validações, pois assume que os dados já são válidos.
+     */
+    public Caixa(int id, LocalDate dataAbertura, BigDecimal saldoInicial, LocalDate dataFechamento, BigDecimal saldoFinal, BigDecimal saldoAtual, StatusCaixa status) {
+        this.id = id;
+        this.dataAbertura = dataAbertura;
+        this.saldoInicial = saldoInicial;
+        this.dataFechamento = dataFechamento;
+        this.saldoFinal = saldoFinal;
+        this.saldoAtual = saldoAtual;
+        this.status = status;
+    }
+
+    // O resto da classe (getters, setters, etc.) continua igual...
 
     public int getId() {
         return id;
@@ -43,7 +55,7 @@ public class Caixa implements java.io.Serializable {
     public void setId(int id) {
         this.id = id;
     }
-
+    // ... (cole o resto da sua classe Caixa aqui)
     public LocalDate getDataAbertura() {
         return dataAbertura;
     }
@@ -68,13 +80,6 @@ public class Caixa implements java.io.Serializable {
         return status;
     }
 
-    // MÉTODOS DE NEGÓCIO DA ENTIDADE
-
-    /**
-     * Adiciona um valor ao saldo atual do caixa.
-     * Lança uma exceção se o caixa não estiver aberto ou se o valor for inválido.
-     * @param valor O valor a ser adicionado (deve ser positivo).
-     */
     public void registrarEntrada(BigDecimal valor) {
         if (this.status != StatusCaixa.ABERTO) {
             throw new IllegalStateException("O caixa deve estar aberto para registrar entradas.");
@@ -85,10 +90,6 @@ public class Caixa implements java.io.Serializable {
         this.saldoAtual = this.saldoAtual.add(valor);
     }
 
-    /**
-     * Fecha o caixa, definindo a data de fechamento e o saldo final.
-     * Lança uma exceção se o caixa já estiver fechado.
-     */
     public void fecharCaixa() {
         if (this.status != StatusCaixa.ABERTO) {
             throw new IllegalStateException("O caixa já está fechado.");
@@ -98,12 +99,6 @@ public class Caixa implements java.io.Serializable {
         this.status = StatusCaixa.FECHADO;
     }
 
-    // MÉTODOS PADRÃO (EQUALS, HASHCODE, TOSTRING)
-
-    /**
-     * ADICIONADO: A igualdade agora é baseada estritamente no ID.
-     * Essencial para que a camada de persistência identifique cada registro de caixa de forma única.
-     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -113,9 +108,6 @@ public class Caixa implements java.io.Serializable {
         return id == caixa.id;
     }
 
-    /**
-     * ADICIONADO: O hashCode agora é baseado no ID, para ser consistente com o equals.
-     */
     @Override
     public int hashCode() {
         return Objects.hash(id);
@@ -130,4 +122,5 @@ public class Caixa implements java.io.Serializable {
                 ", status=" + status +
                 '}';
     }
+
 }
